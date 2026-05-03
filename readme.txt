@@ -4,7 +4,7 @@ Tags: accessibility, a11y, israel, wcag, hebrew, rtl, is-5568
 Requires at least: 6.0
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 0.1.0
+Stable tag: 0.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -31,6 +31,15 @@ Israeli rulings (Tel Aviv District Court, 2022 onward) make clear that overlay-o
 This 0.1.0 release ships the scaffold (button + drawer + position controls + Settings API). Subsequent modules add the 40 features listed in the spec.
 
 == Changelog ==
+
+= 0.2.0 =
+* Features registry (39 adjustments + Reset) — toggle on/off per site from the admin Features tab; behavior lands in modules 3–6.
+* Statement shortcode `[fv_accessibility_statement]` with editable Hebrew template; coordinator details update live.
+* Feedback channel: shortcode `[fv_accessibility_feedback]` + inline form inside the drawer; AJAX-submits and emails the coordinator (legally required).
+* Drawer "main" / "feedback" sections with focus management on switch.
+* Footer accessibility-statement link, configurable via Advanced → Show footer icon.
+* Admin: Features / Statement / Advanced tabs fully implemented. Excluded-pages multi-select. Custom-CSS field. Cleanup-on-uninstall opt-in.
+* Uninstall script honors the cleanup-on-uninstall toggle. Statement page is preserved (user content).
 
 = 0.1.0 =
 * Initial scaffold

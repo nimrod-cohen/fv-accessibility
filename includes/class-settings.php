@@ -50,9 +50,10 @@ class Settings {
         'last_updated'      => '',
       ],
       'advanced' => [
-        'mobile_breakpoint' => 768,
-        'exclude_pages'     => [],
-        'show_footer_icon'  => true,
+        'mobile_breakpoint'    => 768,
+        'exclude_pages'        => [],
+        'show_footer_icon'     => true,
+        'custom_css'           => '',
         'cleanup_on_uninstall' => false,
       ],
     ];

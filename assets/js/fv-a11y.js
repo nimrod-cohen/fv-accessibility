@@ -38,6 +38,37 @@
     trigger.addEventListener('click', togglePanel);
     if (closeBtn) closeBtn.addEventListener('click', closePanel);
 
+    // Drawer section switching: any element with data-target swaps sections.
+    function showSection(name) {
+      var sections = panel.querySelectorAll('.fv-a11y-section');
+      for (var i = 0; i < sections.length; i++) {
+        var s = sections[i];
+        var match = s.getAttribute('data-section') === name;
+        s.hidden = !match;
+      }
+    }
+    panel.addEventListener('click', function (e) {
+      var target = e.target.closest('[data-target]');
+      if (!target || !panel.contains(target)) return;
+      var section = target.getAttribute('data-target');
+      if (!section) return;
+      showSection(section);
+      var heading = panel.querySelector('.fv-a11y-section[data-section="' + section + '"] .fv-a11y-section-title, .fv-a11y-section[data-section="' + section + '"] h3');
+      if (heading) {
+        heading.setAttribute('tabindex', '-1');
+        requestAnimationFrame(function () { heading.focus(); });
+      }
+    });
+
+    // Feedback form submission via admin-ajax.
+    var fbForm = panel.querySelector('.fv-a11y-feedback-form');
+    if (fbForm) {
+      fbForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        submitFeedback(fbForm);
+      });
+    }
+
     // Parse the configurable shortcut (default: Ctrl+U).
     var cfg   = window.fvA11yConfig || {};
     var sc    = String(cfg.shortcut || 'ctrl+u').toLowerCase();
@@ -61,6 +92,63 @@
       e.preventDefault();
       togglePanel();
     });
+  }
+
+  function submitFeedback(form) {
+    var cfg = window.fvA11yConfig || {};
+    var i18n = cfg.i18n || {};
+    var status = form.querySelector('.fv-a11y-fb-status');
+    var submit = form.querySelector('.fv-a11y-fb-submit');
+    var submitText = form.querySelector('.fv-a11y-fb-submit-text');
+
+    if (!cfg.ajax || !cfg.ajax.url) {
+      if (status) status.textContent = i18n.errorGeneric || 'Error';
+      return;
+    }
+
+    var data = new FormData(form);
+    data.append('action', cfg.ajax.action || 'fv_a11y_feedback');
+
+    if (submit) submit.disabled = true;
+    if (submitText) submitText.textContent = i18n.sending || 'Sending...';
+    if (status) {
+      status.className = 'fv-a11y-fb-status';
+      status.textContent = '';
+    }
+
+    fetch(cfg.ajax.url, {
+      method: 'POST',
+      body: data,
+      credentials: 'same-origin',
+    })
+      .then(function (r) {
+        return r.json().then(function (j) { return { ok: r.ok, body: j }; });
+      })
+      .then(function (res) {
+        var msg = (res.body && res.body.data && res.body.data.message) || '';
+        if (res.body && res.body.success) {
+          form.reset();
+          if (status) {
+            status.classList.add('is-success');
+            status.textContent = msg;
+          }
+        } else {
+          if (status) {
+            status.classList.add('is-error');
+            status.textContent = msg || (i18n.errorGeneric || 'Error');
+          }
+        }
+      })
+      .catch(function () {
+        if (status) {
+          status.classList.add('is-error');
+          status.textContent = i18n.errorGeneric || 'Error';
+        }
+      })
+      .finally(function () {
+        if (submit) submit.disabled = false;
+        if (submitText) submitText.textContent = i18n.submit || 'Submit';
+      });
   }
 
   if (document.readyState === 'loading') {

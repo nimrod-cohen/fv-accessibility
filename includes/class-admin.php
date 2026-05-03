@@ -68,6 +68,47 @@ class Admin {
     $bp = (int) ($_POST['advanced']['mobile_breakpoint'] ?? 768);
     $settings['advanced']['mobile_breakpoint'] = max(320, min(1440, $bp));
 
+    $settings['advanced']['show_footer_icon']     = !empty($_POST['advanced']['show_footer_icon']);
+    $settings['advanced']['cleanup_on_uninstall'] = !empty($_POST['advanced']['cleanup_on_uninstall']);
+
+    if (isset($_POST['advanced']['exclude_pages']) && is_array($_POST['advanced']['exclude_pages'])) {
+      $settings['advanced']['exclude_pages'] = array_values(array_filter(
+        array_map('absint', $_POST['advanced']['exclude_pages'])
+      ));
+    } else {
+      $settings['advanced']['exclude_pages'] = [];
+    }
+
+    if (isset($_POST['advanced']['custom_css'])) {
+      $settings['advanced']['custom_css'] = wp_strip_all_tags(wp_unslash($_POST['advanced']['custom_css']));
+    }
+
+    // Features
+    $features_post = isset($_POST['features']) && is_array($_POST['features']) ? $_POST['features'] : [];
+    $features_out  = [];
+    foreach (Features::all() as $f) {
+      $features_out[$f['id']] = !empty($features_post[$f['id']]);
+    }
+    $settings['features'] = $features_out;
+
+    // Statement
+    if (isset($_POST['statement']) && is_array($_POST['statement'])) {
+      $stmt_post = $_POST['statement'];
+      foreach (['coordinator_name', 'coordinator_role', 'coordinator_phone', 'business_name'] as $k) {
+        if (isset($stmt_post[$k])) {
+          $settings['statement'][$k] = sanitize_text_field(wp_unslash($stmt_post[$k]));
+        }
+      }
+      if (isset($stmt_post['coordinator_email'])) {
+        $email = sanitize_email(wp_unslash($stmt_post['coordinator_email']));
+        $settings['statement']['coordinator_email'] = $email;
+      }
+      if (isset($stmt_post['exemption_text'])) {
+        $settings['statement']['exemption_text'] = sanitize_textarea_field(wp_unslash($stmt_post['exemption_text']));
+      }
+      $settings['statement']['last_updated'] = current_time('Y-m-d');
+    }
+
     $settings['enabled'] = !empty($_POST['enabled']);
 
     Settings::update($settings);
@@ -111,15 +152,19 @@ class Admin {
           switch ($tab) {
             case 'position':   self::render_position_tab($settings); break;
             case 'appearance': self::render_appearance_tab($settings); break;
+            case 'features':   self::render_features_tab($settings); break;
+            case 'statement':  self::render_statement_tab($settings); break;
+            case 'advanced':   self::render_advanced_tab($settings); break;
+            case 'compliance':
             default:
               echo '<div class="fv-a11y-coming-soon"><p>'
-                . esc_html__('מודול זה יוטמע בגרסאות הבאות.', 'fv-accessibility')
+                . esc_html__('סורק התקינות יוטמע במודול 7 (גרסה 0.7.0).', 'fv-accessibility')
                 . '</p></div>';
           }
           ?>
         </div>
 
-        <?php if (in_array($tab, ['position', 'appearance'], true)): ?>
+        <?php if (in_array($tab, ['position', 'appearance', 'features', 'statement', 'advanced'], true)): ?>
           <p class="submit">
             <button type="submit" name="fv_accessibility_save" value="1" class="button button-primary">
               <?php esc_html_e('שמור הגדרות', 'fv-accessibility'); ?>
@@ -224,6 +269,148 @@ class Admin {
           <input type="color" name="appearance[icon_color]" value="<?php echo esc_attr($settings['appearance']['icon_color']); ?>">
         </div>
       </div>
+    </div>
+    <?php
+  }
+
+  private static function render_features_tab($settings) {
+    $enabled = Features::enabled_map();
+    $cats    = Features::categories();
+    $by_cat  = [];
+    foreach (Features::all() as $f) {
+      $by_cat[$f['category']][] = $f;
+    }
+    ?>
+    <div class="fv-a11y-card">
+      <h2><?php esc_html_e('בחירת יכולות', 'fv-accessibility'); ?></h2>
+      <p class="description">
+        <?php esc_html_e('סמנו אילו יכולות יוצגו בתפריט הנגישות באתר. ההתנהגות עצמה של כל יכולת נטענת בהדרגה במודולים הבאים — כך שעל אתר ספציפי ניתן כבר עכשיו לכוון את היכולות שיופיעו ללקוח הקצה לכשיוטמעו.', 'fv-accessibility'); ?>
+      </p>
+      <?php foreach ($cats as $cat_id => $cat_label): if (empty($by_cat[$cat_id])) continue; ?>
+        <div class="fv-a11y-card-inner">
+          <h3><?php echo esc_html($cat_label); ?></h3>
+          <div class="fv-a11y-feature-grid">
+            <?php foreach ($by_cat[$cat_id] as $f): ?>
+              <label class="fv-a11y-toggle">
+                <input type="checkbox"
+                       name="features[<?php echo esc_attr($f['id']); ?>]"
+                       value="1"
+                       <?php checked(!empty($enabled[$f['id']])); ?>>
+                <span><?php echo esc_html($f['label']); ?></span>
+              </label>
+            <?php endforeach; ?>
+          </div>
+        </div>
+      <?php endforeach; ?>
+    </div>
+    <?php
+  }
+
+  private static function render_statement_tab($settings) {
+    $stmt = $settings['statement'];
+    $stmt_pid  = (int) ($stmt['page_id'] ?? 0);
+    $stmt_link = $stmt_pid ? get_edit_post_link($stmt_pid) : '';
+    ?>
+    <div class="fv-a11y-card">
+      <h2><?php esc_html_e('פרטי רכז/ת הנגישות', 'fv-accessibility'); ?></h2>
+      <p class="description">
+        <?php esc_html_e('פרטים אלה מופיעים בעמוד הצהרת הנגישות וגם משמשים כיעד למייל מטופס הפניות. שדות אלו נדרשים בתקנה 35.', 'fv-accessibility'); ?>
+      </p>
+      <div class="fv-a11y-grid-2">
+        <div>
+          <label><?php esc_html_e('שם מלא', 'fv-accessibility'); ?></label>
+          <input type="text" name="statement[coordinator_name]" value="<?php echo esc_attr($stmt['coordinator_name']); ?>" class="regular-text">
+        </div>
+        <div>
+          <label><?php esc_html_e('תפקיד', 'fv-accessibility'); ?></label>
+          <input type="text" name="statement[coordinator_role]" value="<?php echo esc_attr($stmt['coordinator_role']); ?>" class="regular-text">
+        </div>
+        <div>
+          <label><?php esc_html_e('אימייל', 'fv-accessibility'); ?></label>
+          <input type="email" name="statement[coordinator_email]" value="<?php echo esc_attr($stmt['coordinator_email']); ?>" class="regular-text" dir="ltr">
+        </div>
+        <div>
+          <label><?php esc_html_e('טלפון', 'fv-accessibility'); ?></label>
+          <input type="text" name="statement[coordinator_phone]" value="<?php echo esc_attr($stmt['coordinator_phone']); ?>" class="regular-text" dir="ltr">
+        </div>
+        <div>
+          <label><?php esc_html_e('שם העסק / האתר', 'fv-accessibility'); ?></label>
+          <input type="text" name="statement[business_name]" value="<?php echo esc_attr($stmt['business_name']); ?>" class="regular-text">
+        </div>
+      </div>
+    </div>
+
+    <div class="fv-a11y-card">
+      <h2><?php esc_html_e('פטורים', 'fv-accessibility'); ?></h2>
+      <p class="description">
+        <?php esc_html_e('פירוט פטורים מהתאמות נגישות שניתנו לפי החוק (אם רלוונטי). השאירו ריק אם אין פטורים.', 'fv-accessibility'); ?>
+      </p>
+      <textarea name="statement[exemption_text]" rows="4" class="large-text" dir="rtl"><?php echo esc_textarea($stmt['exemption_text']); ?></textarea>
+    </div>
+
+    <div class="fv-a11y-card">
+      <h2><?php esc_html_e('עמוד ההצהרה', 'fv-accessibility'); ?></h2>
+      <?php if ($stmt_pid && get_post_status($stmt_pid) === 'publish'): ?>
+        <p>
+          <?php esc_html_e('עמוד ההצהרה נוצר אוטומטית והוא משתמש בקיצור', 'fv-accessibility'); ?>
+          <code dir="ltr">[fv_accessibility_statement]</code>.
+          <a href="<?php echo esc_url($stmt_link); ?>"><?php esc_html_e('עריכת העמוד', 'fv-accessibility'); ?></a>
+          ·
+          <a href="<?php echo esc_url(get_permalink($stmt_pid)); ?>" target="_blank" rel="noopener"><?php esc_html_e('צפייה', 'fv-accessibility'); ?></a>
+        </p>
+      <?php else: ?>
+        <p><?php esc_html_e('לא נמצא עמוד הצהרה. הוא ייווצר אוטומטית בהפעלה הבאה של התוסף, או שניתן ליצור עמוד חדש ולהדביק בתוכו את הקיצור', 'fv-accessibility'); ?>
+          <code dir="ltr">[fv_accessibility_statement]</code>.
+        </p>
+      <?php endif; ?>
+    </div>
+    <?php
+  }
+
+  private static function render_advanced_tab($settings) {
+    $adv = $settings['advanced'];
+    ?>
+    <div class="fv-a11y-card">
+      <h2><?php esc_html_e('אייקון בפוטר', 'fv-accessibility'); ?></h2>
+      <label class="fv-a11y-toggle">
+        <input type="checkbox" name="advanced[show_footer_icon]" value="1" <?php checked(!empty($adv['show_footer_icon'])); ?>>
+        <span><?php esc_html_e('הצג קישור קטן להצהרת הנגישות בתחתית כל עמוד', 'fv-accessibility'); ?></span>
+      </label>
+    </div>
+
+    <div class="fv-a11y-card">
+      <h2><?php esc_html_e('עמודים מוחרגים', 'fv-accessibility'); ?></h2>
+      <p class="description"><?php esc_html_e('בעמודים המסומנים, כפתור הנגישות לא יופיע (שימושי לדפי תשלום, לדוגמה).', 'fv-accessibility'); ?></p>
+      <?php
+      $pages = get_pages([
+        'sort_column' => 'post_title',
+        'sort_order'  => 'ASC',
+        'number'      => 200,
+      ]);
+      $excluded = (array) ($adv['exclude_pages'] ?? []);
+      ?>
+      <div class="fv-a11y-exclude-list">
+        <?php foreach ($pages as $page): ?>
+          <label class="fv-a11y-toggle">
+            <input type="checkbox" name="advanced[exclude_pages][]" value="<?php echo esc_attr($page->ID); ?>" <?php checked(in_array($page->ID, $excluded, true)); ?>>
+            <span><?php echo esc_html($page->post_title); ?></span>
+          </label>
+        <?php endforeach; ?>
+      </div>
+    </div>
+
+    <div class="fv-a11y-card">
+      <h2><?php esc_html_e('CSS מותאם אישית', 'fv-accessibility'); ?></h2>
+      <p class="description"><?php esc_html_e('CSS שיוזרם בכל עמוד באתר, מיועד להתאמות עיצוב מתקדמות. תגיות HTML מוסרות בעת השמירה.', 'fv-accessibility'); ?></p>
+      <textarea name="advanced[custom_css]" rows="6" class="large-text code" dir="ltr"><?php echo esc_textarea($adv['custom_css'] ?? ''); ?></textarea>
+    </div>
+
+    <div class="fv-a11y-card">
+      <h2><?php esc_html_e('הסרת נתונים', 'fv-accessibility'); ?></h2>
+      <label class="fv-a11y-toggle">
+        <input type="checkbox" name="advanced[cleanup_on_uninstall]" value="1" <?php checked(!empty($adv['cleanup_on_uninstall'])); ?>>
+        <span><?php esc_html_e('בעת הסרת התוסף — מחק את ההגדרות מבסיס הנתונים (לא ניתן לשחזור)', 'fv-accessibility'); ?></span>
+      </label>
     </div>
     <?php
   }

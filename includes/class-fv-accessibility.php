@@ -21,6 +21,10 @@ class Plugin {
     add_action('wp_enqueue_scripts', [$this, 'enqueue_frontend']);
     add_action('wp_head', [$this, 'inline_styles'], 99);
     add_action('wp_footer', [$this, 'render_button']);
+    add_action('wp_footer', [$this, 'render_footer_icon']);
+
+    Statement::init();
+    Feedback::init();
 
     if (is_admin()) {
       Admin::register();
@@ -30,6 +34,8 @@ class Plugin {
   public static function activate() {
     // Auto-create the accessibility statement page if missing. Required by
     // Regulation 35: every business must publish an accessibility statement.
+    // Page content is just the shortcode so coordinator-detail edits in the
+    // settings reflect immediately, without re-saving the page.
     $existing = get_page_by_path('accessibility');
     if (!$existing) {
       $page_id = wp_insert_post([
@@ -37,13 +43,11 @@ class Plugin {
         'post_name'    => 'accessibility',
         'post_status'  => 'publish',
         'post_type'    => 'page',
-        'post_content' => '<!-- wp:paragraph --><p>'
-          . esc_html__('תוכן הצהרת הנגישות יוטמע במודולים הבאים. ניתן לערוך עמוד זה ידנית בכל עת.', 'fv-accessibility')
-          . '</p><!-- /wp:paragraph -->',
+        'post_content' => "<!-- wp:shortcode -->\n[fv_accessibility_statement]\n<!-- /wp:shortcode -->",
       ]);
       if (!is_wp_error($page_id)) {
         $settings = Settings::get();
-        $settings['statement']['page_id']      = $page_id;
+        $settings['statement']['page_id']       = $page_id;
         $settings['statement']['business_name'] = get_bloginfo('name');
         $settings['statement']['last_updated']  = current_time('Y-m-d');
         Settings::update($settings);
@@ -88,10 +92,17 @@ class Plugin {
     $settings = Settings::get();
     wp_localize_script('fv-accessibility', 'fvA11yConfig', [
       'shortcut' => $settings['shortcut'],
+      'ajax'     => [
+        'url'    => admin_url('admin-ajax.php'),
+        'action' => Feedback::ACTION,
+      ],
       'i18n'     => [
         'menuLabel'   => __('תפריט נגישות', 'fv-accessibility'),
         'closeLabel'  => __('סגור תפריט נגישות', 'fv-accessibility'),
-        'comingSoon'  => __('הגדרות הנגישות יוטמעו במודולים הבאים.', 'fv-accessibility'),
+        'comingSoon'  => __('פעולות הנגישות יוטמעו במודולים הבאים.', 'fv-accessibility'),
+        'sending'     => __('שולח...', 'fv-accessibility'),
+        'submit'      => __('שלח', 'fv-accessibility'),
+        'errorGeneric'=> __('שגיאה בשליחה. נסו שוב.', 'fv-accessibility'),
       ],
     ]);
   }
@@ -108,9 +119,15 @@ class Plugin {
     $desktop_css = Settings::position_css($d);
     $mobile_css  = Settings::position_css($m);
 
+    $custom = isset($settings['advanced']['custom_css']) ? trim((string) $settings['advanced']['custom_css']) : '';
+
     echo "<style id='fv-a11y-pos'>";
     echo ".fv-a11y-button{position:fixed;{$desktop_css}background:" . esc_attr($bg) . ";color:" . esc_attr($fg) . ";}";
     echo "@media (max-width:{$bp}px){.fv-a11y-button{{$mobile_css}}}";
+    if ($custom !== '') {
+      // Tags were already stripped on save (wp_strip_all_tags in Admin::handle_save).
+      echo "\n/* fv-accessibility custom css */\n" . $custom;
+    }
     echo "</style>\n";
   }
 
@@ -155,11 +172,49 @@ class Plugin {
         <button type="button" class="fv-a11y-panel-close" aria-label="<?php echo $close_label; ?>">&times;</button>
       </header>
       <div class="fv-a11y-panel-body">
-        <p class="fv-a11y-placeholder"><?php echo $coming; ?></p>
+        <section class="fv-a11y-section fv-a11y-section-main" data-section="main">
+          <p class="fv-a11y-placeholder"><?php echo $coming; ?></p>
+          <button type="button" class="fv-a11y-feedback-trigger" data-target="feedback">
+            <?php esc_html_e('דווח על בעיית נגישות', 'fv-accessibility'); ?>
+          </button>
+        </section>
+        <section class="fv-a11y-section fv-a11y-section-feedback" data-section="feedback" hidden>
+          <button type="button" class="fv-a11y-section-back" data-target="main" aria-label="<?php esc_attr_e('חזרה לתפריט הראשי', 'fv-accessibility'); ?>">
+            <?php esc_html_e('← חזרה', 'fv-accessibility'); ?>
+          </button>
+          <h3 class="fv-a11y-section-title"><?php esc_html_e('דווח על בעיית נגישות', 'fv-accessibility'); ?></h3>
+          <?php echo Feedback::render(['variant' => 'drawer']); ?>
+        </section>
       </div>
       <footer class="fv-a11y-panel-footer">
         <a href="<?php echo esc_url($stmt_url); ?>" class="fv-a11y-statement-link"><?php echo $stmt_label; ?></a>
       </footer>
+    </div>
+    <?php
+  }
+
+  /**
+   * Small accessibility-statement link auto-injected at the end of <body> when
+   * `show_footer_icon` is on. Sits inline (not fixed) so themes lay it out
+   * naturally below the page content. Theme integrators can also place it
+   * anywhere by enqueuing the icon directly via the JS-free shortcode in the
+   * theme's footer.php.
+   */
+  public function render_footer_icon() {
+    if (!$this->should_render()) return;
+    $settings = Settings::get();
+    if (empty($settings['advanced']['show_footer_icon'])) return;
+    $url = Statement::url();
+    ?>
+    <div class="fv-a11y-footer-link" role="complementary" aria-label="<?php esc_attr_e('הצהרת נגישות', 'fv-accessibility'); ?>">
+      <a href="<?php echo esc_url($url); ?>">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false" width="16" height="16">
+          <circle cx="12" cy="4" r="1.6"/>
+          <path d="M5.5 7.5h13a1.5 1.5 0 0 1 0 3h-13a1.5 1.5 0 0 1 0-3z"/>
+          <path d="M12 10.5l-3.6 9.8a1 1 0 0 0 1.88.7L12 16l1.72 5a1 1 0 0 0 1.88-.7z"/>
+        </svg>
+        <span><?php esc_html_e('הצהרת נגישות', 'fv-accessibility'); ?></span>
+      </a>
     </div>
     <?php
   }
