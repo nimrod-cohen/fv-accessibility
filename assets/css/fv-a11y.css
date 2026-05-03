@@ -325,6 +325,96 @@
 }
 .fv-a11y-color-clear:hover { background: #f9fafb; }
 
+/* Profile chips (one-click presets) — visually distinct from the regular
+   feature buttons so they read as "shortcuts that bundle multiple". */
+.fv-a11y-profile-chip {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 14px;
+  background: #eef2ff;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 14px !important;
+  font-weight: 500;
+  color: #1e3a8a;
+  cursor: pointer;
+  text-align: start;
+  margin-bottom: 6px;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+.fv-a11y-profile-chip:hover  { background: #dbeafe; }
+.fv-a11y-profile-chip.is-active { background: #1d4ed8; color: #ffffff; border-color: #1e3a8a; }
+.fv-a11y-profile-chip:focus-visible { outline: 2px solid #1d4ed8; outline-offset: 2px; }
+
+/* Page structure / outline sub-section: tabs + scrollable list. */
+.fv-a11y-structure-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 6px;
+}
+.fv-a11y-structure-tabs button {
+  flex: 1;
+  padding: 6px 8px;
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  font: inherit;
+  font-size: 13px !important;
+  color: #4b5563;
+  cursor: pointer;
+}
+.fv-a11y-structure-tabs button.is-active {
+  color: #1d4ed8;
+  border-bottom-color: #1d4ed8;
+}
+.fv-a11y-structure-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 360px;
+  overflow-y: auto;
+}
+.fv-a11y-structure-list[hidden] { display: none; }
+.fv-a11y-structure-list li {
+  margin-bottom: 4px;
+}
+.fv-a11y-structure-list button {
+  display: block;
+  width: 100%;
+  padding: 7px 10px;
+  background: #f9fafb;
+  border: 0;
+  border-radius: 4px;
+  font: inherit;
+  font-size: 13px !important;
+  text-align: start;
+  color: #111827;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fv-a11y-structure-list button:hover { background: #e5e7eb; }
+.fv-a11y-structure-list button:focus-visible { outline: 2px solid #1d4ed8; outline-offset: 2px; }
+.fv-a11y-structure-list .fv-a11y-h-1 { font-weight: 700 }
+.fv-a11y-structure-list .fv-a11y-h-2 { padding-inline-start: 18px !important; font-weight: 600 }
+.fv-a11y-structure-list .fv-a11y-h-3 { padding-inline-start: 28px !important }
+.fv-a11y-structure-list .fv-a11y-h-4 { padding-inline-start: 38px !important; color: #4b5563 }
+.fv-a11y-structure-list .fv-a11y-h-5 { padding-inline-start: 46px !important; color: #6b7280 }
+.fv-a11y-structure-list .fv-a11y-h-6 { padding-inline-start: 54px !important; color: #6b7280 }
+.fv-a11y-structure-empty {
+  padding: 20px 8px;
+  color: #6b7280;
+  text-align: center;
+}
+
 .fv-a11y-reset {
   display: block;
   width: 100%;

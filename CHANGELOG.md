@@ -2,6 +2,24 @@
 
 All notable changes will be documented in this file.
 
+## [0.5.0] - 2026-05-03 — Module 5: navigation, cursor, profiles (31–37 + 1–5)
+
+### Added
+- **Cursors (31, 32)**: big black cursor and big white cursor — bundled SVG arrows applied via `cursor: url(...) 3 3, default !important`. Hot spot at the arrow tip. Mutual exclusivity in JS: enabling one disables the other.
+- **Keyboard navigation (33)**: visible global focus ring (`outline: 3px solid #f59e0b`), auto-injected `דלג לתוכן` skip link (visible only on focus), Alt+1..9 jumps to the nth heading + focuses + smooth-scrolls.
+- **Reading ruler (34)**: horizontal highlight band follows the cursor. Mousemove → `requestAnimationFrame` → `--fv-ruler-y` CSS variable. Single passive listener.
+- **Reading mask (35)**: dims everything except a ~160px strip around cursor. Two fixed overlays (top + bottom) sized via `--fv-mask-y` CSS variable.
+- **Reader mode (36)**: detects main content (`<main>`, `[role="main"]`, `<article>`, `.entry-content`, `#content`, `#primary`, etc.), clones its HTML into `.fv-a11y-reader-mode-content`, hides every other body child via CSS. Original DOM untouched — toggle off restores everything.
+- **Page structure (36)**: drawer sub-section with three tabs — headings (h1–h6 with indent by level), ARIA landmarks, and links (capped at 200). Each item is a button that scrolls the target into view, focuses it, flashes an outline, and closes the panel.
+- **Page outline (37)**: lighter sub-section with just the heading list.
+- **Profiles (1–5)**: 5 one-click presets (blind, low_vision, color_blind, cognitive, motor) that bundle multiple state keys. Click → activate; click again → deactivate. Profile shows "active" only while every constituent key still matches its definition (so manually toggling a feature un-activates the profile visually).
+
+### Notes
+- Profile chips render as full-width pill buttons in the drawer (visually distinct from the 2-column feature buttons).
+- New `action` control type opens a sub-section instead of toggling state.
+- Inline `<head>` bootstrap extended with all the new state classes so navigation features apply before paint.
+- The version constant fix in v0.4.2 left the plugin header at 0.4.1; this release bumps both to 0.5.0.
+
 ## [0.4.0] - 2026-05-03 — Module 4: color/contrast (21–26) + media/motion (27–30)
 
 ### Added

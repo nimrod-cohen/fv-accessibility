@@ -54,7 +54,53 @@
     if (state.blockFlashing)     c.push('fv-block-flashing');
     if (state.muteMedia)         c.push('fv-mute-media');
     if (state.customBg || state.customFg || state.customHeading) c.push('fv-custom-colors');
+    if (state.cursorBlack)   c.push('fv-cursor-black');
+    if (state.cursorWhite)   c.push('fv-cursor-white');
+    if (state.keyboardNav)   c.push('fv-keyboard-nav');
+    if (state.readingRuler)  c.push('fv-reading-ruler');
+    if (state.readingMask)   c.push('fv-reading-mask');
+    if (state.readerMode)    c.push('fv-reader-mode');
     return c;
+  }
+
+  /**
+   * Profile definitions. Each profile is a meta-toggle: clicking activates
+   * a bundle of feature state. State coherence is checked by re-comparing
+   * each key — a profile is "active" only when *all* of its keys still
+   * match its definition (so manually flipping one feature un-activates
+   * the profile visually without un-doing what the user did).
+   */
+  var PROFILES = {
+    profile_blind:       { keyboardNav: true, highlightLinks: true, highlightHeadings: true, highlightFocus: true, readableFont: true },
+    profile_low_vision:  { textSize: 2, contrastLight: true, readableFont: true, cursorWhite: true, largerTargets: true, highlightLinks: true },
+    profile_color_blind: { monochrome: true, highlightLinks: true },
+    profile_cognitive:   { readableFont: true, readingRuler: true, pauseAnimations: true, lineSpacing: 2, dyslexicFont: true },
+    profile_motor:       { keyboardNav: true, largerTargets: true, highlightFocus: true, cursorBlack: true }
+  };
+
+  function profileMatches(profileId, state) {
+    var def = PROFILES[profileId]; if (!def) return false;
+    for (var k in def) if (def.hasOwnProperty(k)) {
+      if ((state[k] || (typeof def[k] === 'boolean' ? false : 0)) !== def[k]) return false;
+    }
+    return true;
+  }
+
+  function applyProfile(profileId, state) {
+    var def = PROFILES[profileId]; if (!def) return state;
+    var active = profileMatches(profileId, state);
+    var keys = Object.keys(def);
+    if (active) {
+      // Deactivating: clear only the keys the profile sets.
+      for (var i = 0; i < keys.length; i++) {
+        var k = keys[i];
+        state[k] = (typeof def[k] === 'boolean') ? false : (typeof def[k] === 'number' ? 0 : '');
+      }
+    } else {
+      // Activating: copy values over.
+      for (var j = 0; j < keys.length; j++) state[keys[j]] = def[keys[j]];
+    }
+    return state;
   }
 
   /**
@@ -102,7 +148,7 @@
     var keep = [];
     var existing = (html.className || '').split(/\s+/);
     for (var i = 0; i < existing.length; i++) {
-      if (existing[i] && !/^fv-(?:text-|line-|word-|letter-|page-|readable-|dyslexic-|larger-|highlight-|image-|content-|contrast-|monochrome|invert-|saturation-|pause-|hide-|block-|mute-|custom-)/.test(existing[i])) {
+      if (existing[i] && !/^fv-(?:text-|line-|word-|letter-|page-|readable-|dyslexic-|larger-|highlight-|image-|content-|contrast-|monochrome|invert-|saturation-|pause-|hide-|block-|mute-|custom-|cursor-|keyboard-|reading-|reader-)/.test(existing[i])) {
         keep.push(existing[i]);
       }
     }
@@ -120,6 +166,211 @@
     // Pause-animations also pauses currently-playing videos (for the
     // "stop motion" expectation that goes beyond CSS animations).
     if (state.pauseAnimations) pauseAllVideos();
+
+    // Navigation/cursor side effects.
+    if (state.readingRuler) attachRulerTracking(); else detachRulerTracking();
+    if (state.readingMask)  attachMaskTracking();  else detachMaskTracking();
+    if (state.readerMode)   ensureReaderModeContent(); else removeReaderModeContent();
+    if (state.keyboardNav)  ensureSkipTarget();    else removeSkipTarget();
+    if (state.keyboardNav)  enableLandmarkNav();   else disableLandmarkNav();
+  }
+
+  /* ─── Reading ruler ─── */
+  var rulerRaf = 0, rulerY = 0;
+  function onRulerMove(e) {
+    rulerY = e.clientY;
+    if (rulerRaf) return;
+    rulerRaf = requestAnimationFrame(function () {
+      document.documentElement.style.setProperty('--fv-ruler-y', rulerY + 'px');
+      rulerRaf = 0;
+    });
+  }
+  function attachRulerTracking() { document.addEventListener('mousemove', onRulerMove, { passive: true }); }
+  function detachRulerTracking() { document.removeEventListener('mousemove', onRulerMove); }
+
+  /* ─── Reading mask ─── */
+  var maskRaf = 0, maskY = 0;
+  function onMaskMove(e) {
+    maskY = e.clientY;
+    if (maskRaf) return;
+    maskRaf = requestAnimationFrame(function () {
+      document.documentElement.style.setProperty('--fv-mask-y', maskY + 'px');
+      maskRaf = 0;
+    });
+  }
+  function attachMaskTracking() { document.addEventListener('mousemove', onMaskMove, { passive: true }); }
+  function detachMaskTracking() { document.removeEventListener('mousemove', onMaskMove); }
+
+  /* ─── Reader mode ───
+   * Detect the most likely "main content" element using a priority list,
+   * clone it into .fv-a11y-reader-mode-content so the original DOM stays
+   * untouched. The CSS hides every other body child while .fv-reader-mode
+   * is on. */
+  function detectMainContent() {
+    var candidates = ['main', '[role="main"]', 'article', '.entry-content', '.post-content', '#content', '#main', '#primary'];
+    for (var i = 0; i < candidates.length; i++) {
+      var el = document.querySelector(candidates[i]);
+      if (el && el.textContent && el.textContent.trim().length > 80) return el;
+    }
+    return null;
+  }
+  function ensureReaderModeContent() {
+    var existing = document.querySelector('.fv-a11y-reader-mode-content');
+    if (existing) return;
+    var src = detectMainContent();
+    var wrapper = document.createElement('article');
+    wrapper.className = 'fv-a11y-reader-mode-content';
+    if (src) {
+      wrapper.innerHTML = src.innerHTML;
+    } else {
+      wrapper.textContent = 'לא נמצא תוכן ראשי בעמוד זה.';
+    }
+    if (document.body) document.body.appendChild(wrapper);
+  }
+  function removeReaderModeContent() {
+    var el = document.querySelector('.fv-a11y-reader-mode-content');
+    if (el && el.parentNode) el.parentNode.removeChild(el);
+  }
+
+  /* ─── Skip link target ───
+   * The static skip link points at #fv-a11y-skip-target. Add that id to a
+   * sensible main-content element (the same ones reader-mode looks at), so
+   * focusing the link actually jumps somewhere useful. */
+  function ensureSkipTarget() {
+    if (document.getElementById('fv-a11y-skip-target')) return;
+    var el = detectMainContent() || document.querySelector('h1') || document.body;
+    if (!el) return;
+    el.id = el.id || 'fv-a11y-skip-target';
+    if (el.id !== 'fv-a11y-skip-target') {
+      // Element already had an id; create a sibling anchor instead.
+      var a = document.createElement('a');
+      a.id = 'fv-a11y-skip-target';
+      a.tabIndex = -1;
+      el.parentNode.insertBefore(a, el);
+    }
+  }
+  function removeSkipTarget() {
+    var t = document.getElementById('fv-a11y-skip-target');
+    if (t && t.tagName === 'A' && t.tabIndex === -1) {
+      // Only remove if we created it; ids set on existing elements stay.
+      if (t.parentNode) t.parentNode.removeChild(t);
+    }
+  }
+
+  /* ─── Landmark navigation (Alt + 1..9 → nth heading) ─── */
+  function landmarkKeydown(e) {
+    if (!e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+    var k = parseInt(e.key, 10);
+    if (!(k >= 1 && k <= 9)) return;
+    var headings = document.querySelectorAll('main h1, main h2, main h3, h1, h2, h3');
+    var target = headings[k - 1];
+    if (!target) return;
+    e.preventDefault();
+    target.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    target.tabIndex = -1;
+    target.focus();
+    flashHighlight(target);
+  }
+  function enableLandmarkNav()  { document.addEventListener('keydown', landmarkKeydown); }
+  function disableLandmarkNav() { document.removeEventListener('keydown', landmarkKeydown); }
+
+  function flashHighlight(el) {
+    el.classList.add('fv-a11y-jump-highlight');
+    setTimeout(function () { el.classList.remove('fv-a11y-jump-highlight'); }, 1500);
+  }
+
+  /* ─── Structure / outline list population ───
+   * Builds a fresh list each open. CSS-selector strings are stored on
+   * data-jump so the click handler can re-find each target without
+   * holding DOM references (which would prevent GC of removed nodes). */
+  function selectorForElement(el) {
+    if (el.id) return '#' + CSS.escape(el.id);
+    // Generate a path using nth-of-type for stability.
+    var parts = [];
+    var node = el;
+    while (node && node.nodeType === 1 && parts.length < 6) {
+      var tag = node.nodeName.toLowerCase();
+      if (tag === 'html' || tag === 'body') break;
+      var sib = node, idx = 1;
+      while ((sib = sib.previousElementSibling)) {
+        if (sib.nodeName === node.nodeName) idx++;
+      }
+      parts.unshift(tag + ':nth-of-type(' + idx + ')');
+      node = node.parentElement;
+    }
+    return parts.length ? parts.join(' > ') : el.nodeName.toLowerCase();
+  }
+
+  function populateStructureLists(panel, target) {
+    if (target === 'outline') {
+      var listOutline = panel.querySelector('.fv-a11y-structure-list[data-list="outline"]');
+      fillList(listOutline, queryHeadings());
+      return;
+    }
+    fillList(panel.querySelector('.fv-a11y-structure-list[data-list="headings"]'),  queryHeadings());
+    fillList(panel.querySelector('.fv-a11y-structure-list[data-list="landmarks"]'), queryLandmarks());
+    fillList(panel.querySelector('.fv-a11y-structure-list[data-list="links"]'),     queryLinks());
+  }
+
+  function queryHeadings() {
+    var els = document.querySelectorAll('main h1, main h2, main h3, main h4, main h5, main h6, body h1, body h2, body h3, body h4, body h5, body h6');
+    var out = [], seen = new WeakSet();
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i];
+      if (seen.has(el)) continue;
+      if (el.closest && el.closest('.fv-a11y-panel')) continue;
+      seen.add(el);
+      out.push({ el: el, label: (el.textContent || '').trim().slice(0, 80), level: parseInt(el.nodeName.slice(1), 10) });
+    }
+    return out;
+  }
+  function queryLandmarks() {
+    var sel = 'main, [role="main"], nav, [role="navigation"], aside, [role="complementary"], header, [role="banner"], footer, [role="contentinfo"], section[aria-label], section[aria-labelledby]';
+    var els = document.querySelectorAll(sel);
+    var out = [];
+    for (var i = 0; i < els.length; i++) {
+      if (els[i].closest && els[i].closest('.fv-a11y-panel')) continue;
+      var name = els[i].getAttribute('aria-label')
+        || (els[i].getAttribute('aria-labelledby') && (document.getElementById(els[i].getAttribute('aria-labelledby')) || {}).textContent)
+        || els[i].nodeName.toLowerCase();
+      out.push({ el: els[i], label: name.toString().trim().slice(0, 80) });
+    }
+    return out;
+  }
+  function queryLinks() {
+    var els = document.querySelectorAll('main a[href], body a[href]');
+    var out = [], seen = new WeakSet();
+    for (var i = 0; i < els.length && out.length < 200; i++) {
+      var a = els[i];
+      if (seen.has(a)) continue;
+      if (a.closest && a.closest('.fv-a11y-panel')) continue;
+      seen.add(a);
+      var t = (a.textContent || '').trim() || a.getAttribute('aria-label') || a.href;
+      out.push({ el: a, label: t.slice(0, 80) });
+    }
+    return out;
+  }
+
+  function fillList(listEl, items) {
+    if (!listEl) return;
+    listEl.innerHTML = '';
+    if (!items.length) {
+      var empty = document.createElement('li');
+      empty.className = 'fv-a11y-structure-empty';
+      empty.textContent = 'אין פריטים בעמוד זה.';
+      listEl.appendChild(empty);
+      return;
+    }
+    for (var i = 0; i < items.length; i++) {
+      var li = document.createElement('li');
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.textContent = items[i].label || '(ללא טקסט)';
+      btn.setAttribute('data-jump', selectorForElement(items[i].el));
+      if (items[i].level) btn.className = 'fv-a11y-h-' + items[i].level;
+      li.appendChild(btn);
+      listEl.appendChild(li);
+    }
   }
 
   /**
@@ -198,7 +449,12 @@
       btn.classList.toggle('is-active', !!c);
       btn.setAttribute('aria-pressed', c ? 'true' : 'false');
       if (stateEl) stateEl.textContent = c ? labelForCycleValue(c) : '';
+    } else if (type === 'profile') {
+      var match = profileMatches(feature, state);
+      btn.classList.toggle('is-active', match);
+      btn.setAttribute('aria-pressed', match ? 'true' : 'false');
     }
+    // 'action' type has no on/off state — it just opens a sub-section.
   }
 
   function labelForCycleValue(v) {
@@ -209,7 +465,7 @@
   }
 
   function refreshAllButtons(panel, state) {
-    var buttons = panel.querySelectorAll('.fv-a11y-ctl');
+    var buttons = panel.querySelectorAll('.fv-a11y-ctl, .fv-a11y-profile-chip');
     for (var i = 0; i < buttons.length; i++) updateButton(buttons[i], state);
 
     // Sync the color picker inputs to saved state (only when set; otherwise
@@ -284,11 +540,34 @@
     applyState(state);
     refreshAllButtons(panel, state);
 
-    // Feature-control click handler: cycles step/cycle, flips toggles.
+    // Feature-control click handler: cycles step/cycle, flips toggles,
+    // applies profiles, opens sub-sections for action buttons.
     panel.addEventListener('click', function (e) {
-      var ctl = e.target.closest('.fv-a11y-ctl');
+      var ctl = e.target.closest('.fv-a11y-ctl, .fv-a11y-profile-chip');
       if (ctl && panel.contains(ctl)) {
         handleControlClick(ctl);
+        return;
+      }
+      var tab = e.target.closest('.fv-a11y-structure-tabs button');
+      if (tab && panel.contains(tab)) {
+        var name = tab.getAttribute('data-tab');
+        var btns = panel.querySelectorAll('.fv-a11y-structure-tabs button');
+        for (var i = 0; i < btns.length; i++) btns[i].classList.toggle('is-active', btns[i] === tab);
+        var lists = panel.querySelectorAll('.fv-a11y-structure-list');
+        for (var j = 0; j < lists.length; j++) lists[j].hidden = lists[j].getAttribute('data-list') !== name;
+        return;
+      }
+      var jump = e.target.closest('.fv-a11y-structure-list button[data-jump]');
+      if (jump && panel.contains(jump)) {
+        var sel = jump.getAttribute('data-jump');
+        var target = sel ? document.querySelector(sel) : null;
+        if (target) {
+          target.scrollIntoView({ block: 'start', behavior: 'smooth' });
+          target.tabIndex = -1;
+          target.focus();
+          flashHighlight(target);
+          closePanel();
+        }
         return;
       }
       var resetBtn = e.target.closest('[data-action="reset"]');
@@ -328,6 +607,25 @@
       var label = ctlLabel(btn);
       var msg   = '';
 
+      if (type === 'profile') {
+        applyProfile(feature, st);
+        writeState(st);
+        applyState(st);
+        refreshAllButtons(panel, st);
+        announce(panel, label);
+        return;
+      }
+      if (type === 'action') {
+        var target = btn.getAttribute('data-target');
+        if (target === 'structure' || target === 'outline') {
+          populateStructureLists(panel, target);
+        }
+        showSection(target);
+        var heading = panel.querySelector('.fv-a11y-section[data-section="' + target + '"] .fv-a11y-section-title');
+        if (heading) requestAnimationFrame(function () { heading.focus(); });
+        return;
+      }
+
       if (type === 'step') {
         var steps = parseInt(btn.getAttribute('data-steps'), 10) || 1;
         st[key] = ((st[key] || 0) + 1) % (steps + 1);
@@ -336,6 +634,9 @@
           : (i18n.announceOff  || '%s off').replace('%s', label);
       } else if (type === 'toggle') {
         st[key] = !st[key];
+        // Cursor mutex: enabling one cursor variant forces the other off.
+        if (key === 'cursorBlack' && st.cursorBlack) st.cursorWhite = false;
+        if (key === 'cursorWhite' && st.cursorWhite) st.cursorBlack = false;
         msg = st[key]
           ? (i18n.announceOn  || '%s on').replace('%s', label)
           : (i18n.announceOff || '%s off').replace('%s', label);

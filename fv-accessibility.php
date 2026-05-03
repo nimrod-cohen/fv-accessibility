@@ -3,7 +3,7 @@
  * Plugin Name:       FV Accessibility
  * Plugin URI:        https://github.com/nimrod-cohen/fv-accessibility
  * Description:       WordPress accessibility plugin compliant with Israeli Standard IS 5568 (WCAG 2.1 AA) and Regulation 35 of the Equal Rights for Persons with Disabilities (Service Accessibility Adjustments) Regulations, 5773-2013. Performs real DOM modifications — not a cosmetic overlay.
- * Version:           0.4.1
+ * Version:           0.5.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            nimrod-cohen

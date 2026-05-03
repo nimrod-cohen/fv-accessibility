@@ -132,7 +132,7 @@ class Plugin {
     if (!$this->should_render()) return;
     ?>
 <script id="fv-a11y-bootstrap">
-(function(){try{var s=null;try{s=localStorage.getItem('fv_a11y_state');}catch(e){}if(!s){var m=document.cookie.match(/(?:^|;\s*)fv_a11y_state=([^;]+)/);if(m)s=decodeURIComponent(m[1]);}if(!s)return;var st=JSON.parse(s),cls=[],h=document.documentElement;if(st.textSize)cls.push('fv-text-size-'+st.textSize);if(st.lineSpacing)cls.push('fv-line-spacing-'+st.lineSpacing);if(st.wordSpacing)cls.push('fv-word-spacing-'+st.wordSpacing);if(st.letterSpacing)cls.push('fv-letter-spacing-'+st.letterSpacing);if(st.lineHeight)cls.push('fv-line-height-'+st.lineHeight);if(st.pageZoom)cls.push('fv-page-zoom-'+st.pageZoom);if(st.textAlign)cls.push('fv-text-align-'+st.textAlign);if(st.readableFont)cls.push('fv-readable-font');if(st.dyslexicFont)cls.push('fv-dyslexic-font');if(st.largerTargets)cls.push('fv-larger-targets');if(st.highlightHeadings)cls.push('fv-highlight-headings');if(st.highlightLinks)cls.push('fv-highlight-links');if(st.highlightFocus)cls.push('fv-highlight-focus');if(st.imageDescriptions)cls.push('fv-image-descriptions');if(st.contentMagnifier)cls.push('fv-content-magnifier');if(st.contrastLight)cls.push('fv-contrast-light');if(st.contrastDark)cls.push('fv-contrast-dark');if(st.monochrome)cls.push('fv-monochrome');if(st.invertColors)cls.push('fv-invert-colors');if(st.saturation)cls.push('fv-saturation-'+st.saturation);if(st.pauseAnimations)cls.push('fv-pause-animations');if(st.hideImages)cls.push('fv-hide-images');if(st.blockFlashing)cls.push('fv-block-flashing');if(st.muteMedia)cls.push('fv-mute-media');var hasCustom=false;if(st.customBg){h.style.setProperty('--fv-custom-bg',st.customBg);hasCustom=true;}if(st.customFg){h.style.setProperty('--fv-custom-fg',st.customFg);hasCustom=true;}if(st.customHeading){h.style.setProperty('--fv-custom-heading',st.customHeading);hasCustom=true;}if(hasCustom)cls.push('fv-custom-colors');if(cls.length)h.classList.add.apply(h.classList,cls);}catch(e){}})();
+(function(){try{var s=null;try{s=localStorage.getItem('fv_a11y_state');}catch(e){}if(!s){var m=document.cookie.match(/(?:^|;\s*)fv_a11y_state=([^;]+)/);if(m)s=decodeURIComponent(m[1]);}if(!s)return;var st=JSON.parse(s),cls=[],h=document.documentElement;if(st.textSize)cls.push('fv-text-size-'+st.textSize);if(st.lineSpacing)cls.push('fv-line-spacing-'+st.lineSpacing);if(st.wordSpacing)cls.push('fv-word-spacing-'+st.wordSpacing);if(st.letterSpacing)cls.push('fv-letter-spacing-'+st.letterSpacing);if(st.lineHeight)cls.push('fv-line-height-'+st.lineHeight);if(st.pageZoom)cls.push('fv-page-zoom-'+st.pageZoom);if(st.textAlign)cls.push('fv-text-align-'+st.textAlign);if(st.readableFont)cls.push('fv-readable-font');if(st.dyslexicFont)cls.push('fv-dyslexic-font');if(st.largerTargets)cls.push('fv-larger-targets');if(st.highlightHeadings)cls.push('fv-highlight-headings');if(st.highlightLinks)cls.push('fv-highlight-links');if(st.highlightFocus)cls.push('fv-highlight-focus');if(st.imageDescriptions)cls.push('fv-image-descriptions');if(st.contentMagnifier)cls.push('fv-content-magnifier');if(st.contrastLight)cls.push('fv-contrast-light');if(st.contrastDark)cls.push('fv-contrast-dark');if(st.monochrome)cls.push('fv-monochrome');if(st.invertColors)cls.push('fv-invert-colors');if(st.saturation)cls.push('fv-saturation-'+st.saturation);if(st.pauseAnimations)cls.push('fv-pause-animations');if(st.hideImages)cls.push('fv-hide-images');if(st.blockFlashing)cls.push('fv-block-flashing');if(st.muteMedia)cls.push('fv-mute-media');if(st.cursorBlack)cls.push('fv-cursor-black');if(st.cursorWhite)cls.push('fv-cursor-white');if(st.keyboardNav)cls.push('fv-keyboard-nav');if(st.readingRuler)cls.push('fv-reading-ruler');if(st.readingMask)cls.push('fv-reading-mask');if(st.readerMode)cls.push('fv-reader-mode');var hasCustom=false;if(st.customBg){h.style.setProperty('--fv-custom-bg',st.customBg);hasCustom=true;}if(st.customFg){h.style.setProperty('--fv-custom-fg',st.customFg);hasCustom=true;}if(st.customHeading){h.style.setProperty('--fv-custom-heading',st.customHeading);hasCustom=true;}if(hasCustom)cls.push('fv-custom-colors');if(cls.length)h.classList.add.apply(h.classList,cls);}catch(e){}})();
 </script>
     <?php
   }
@@ -174,6 +174,23 @@ class Plugin {
    *   cycle  — comma-separated values rotated through (for type=cycle)
    */
   private function module3_controls() {
+    $profiles = [
+      ['id' => 'profile_blind',       'label' => 'נגישות לעיוורים',         'type' => 'profile'],
+      ['id' => 'profile_low_vision',  'label' => 'נגישות לכבדי ראייה',      'type' => 'profile'],
+      ['id' => 'profile_color_blind', 'label' => 'נגישות לעיוורי צבעים',    'type' => 'profile'],
+      ['id' => 'profile_cognitive',   'label' => 'נגישות למוגבלי קוגניציה', 'type' => 'profile'],
+      ['id' => 'profile_motor',       'label' => 'נגישות לנכי מוטוריקה',    'type' => 'profile'],
+    ];
+    $navigation = [
+      ['id' => 'cursor_black',        'label' => 'סמן גדול שחור',           'type' => 'toggle'],
+      ['id' => 'cursor_white',        'label' => 'סמן גדול לבן',            'type' => 'toggle'],
+      ['id' => 'keyboard_nav',        'label' => 'ניווט מקלדת',             'type' => 'toggle'],
+      ['id' => 'reading_ruler',       'label' => 'מדריך קריאה',             'type' => 'toggle'],
+      ['id' => 'reading_mask',        'label' => 'מיקוד קריאה',             'type' => 'toggle'],
+      ['id' => 'reader_mode',         'label' => 'תצוגת קריאה',             'type' => 'toggle'],
+      ['id' => 'page_structure',      'label' => 'מבנה העמוד',              'type' => 'action', 'target' => 'structure'],
+      ['id' => 'page_outline',        'label' => 'סיכום עמוד',              'type' => 'action', 'target' => 'outline'],
+    ];
     $color = [
       ['id' => 'contrast_light',     'label' => 'ניגודיות בהירה',           'type' => 'toggle'],
       ['id' => 'contrast_dark',      'label' => 'ניגודיות כהה',             'type' => 'toggle'],
@@ -205,7 +222,7 @@ class Plugin {
       ['id' => 'image_descriptions', 'label' => 'תיאור לתמונות',            'type' => 'toggle'],
       ['id' => 'content_magnifier',  'label' => 'הגדלת תוכן בריחוף',        'type' => 'toggle'],
     ];
-    return array_merge($content, $color, $media);
+    return array_merge($profiles, $content, $color, $media, $navigation);
   }
 
   /**
@@ -237,7 +254,23 @@ class Plugin {
         <h3><?php echo esc_html($cat_label); ?></h3>
         <div class="fv-a11y-grid">
           <?php foreach ($by_cat[$cat_id] as $c): ?>
-            <?php if ($c['type'] === 'colors'): ?>
+            <?php if ($c['type'] === 'profile'): ?>
+              <button type="button"
+                      class="fv-a11y-profile-chip"
+                      data-feature="<?php echo esc_attr($c['id']); ?>"
+                      data-type="profile"
+                      aria-pressed="false">
+                <span class="fv-a11y-ctl-label"><?php echo esc_html($c['label']); ?></span>
+              </button>
+            <?php elseif ($c['type'] === 'action'): ?>
+              <button type="button"
+                      class="fv-a11y-ctl"
+                      data-feature="<?php echo esc_attr($c['id']); ?>"
+                      data-type="action"
+                      data-target="<?php echo esc_attr($c['target']); ?>">
+                <span class="fv-a11y-ctl-label"><?php echo esc_html($c['label']); ?></span>
+              </button>
+            <?php elseif ($c['type'] === 'colors'): ?>
               <div class="fv-a11y-color-picker" data-feature="color_picker">
                 <span class="fv-a11y-ctl-label"><?php echo esc_html($c['label']); ?></span>
                 <div class="fv-a11y-color-row">
@@ -328,6 +361,27 @@ class Plugin {
             <?php esc_html_e('דווח על בעיית נגישות', 'fv-accessibility'); ?>
           </button>
         </section>
+        <section class="fv-a11y-section fv-a11y-section-structure" data-section="structure" hidden>
+          <button type="button" class="fv-a11y-section-back" data-target="main">
+            <?php esc_html_e('← חזרה', 'fv-accessibility'); ?>
+          </button>
+          <h3 class="fv-a11y-section-title"><?php esc_html_e('מבנה העמוד', 'fv-accessibility'); ?></h3>
+          <div class="fv-a11y-structure-tabs" role="tablist">
+            <button type="button" data-tab="headings" class="is-active" role="tab"><?php esc_html_e('כותרות', 'fv-accessibility'); ?></button>
+            <button type="button" data-tab="landmarks" role="tab"><?php esc_html_e('אזורים', 'fv-accessibility'); ?></button>
+            <button type="button" data-tab="links" role="tab"><?php esc_html_e('קישורים', 'fv-accessibility'); ?></button>
+          </div>
+          <ol class="fv-a11y-structure-list" data-list="headings"  role="tabpanel"></ol>
+          <ol class="fv-a11y-structure-list" data-list="landmarks" role="tabpanel" hidden></ol>
+          <ol class="fv-a11y-structure-list" data-list="links"     role="tabpanel" hidden></ol>
+        </section>
+        <section class="fv-a11y-section fv-a11y-section-outline" data-section="outline" hidden>
+          <button type="button" class="fv-a11y-section-back" data-target="main">
+            <?php esc_html_e('← חזרה', 'fv-accessibility'); ?>
+          </button>
+          <h3 class="fv-a11y-section-title"><?php esc_html_e('סיכום עמוד', 'fv-accessibility'); ?></h3>
+          <ol class="fv-a11y-structure-list" data-list="outline"></ol>
+        </section>
         <section class="fv-a11y-section fv-a11y-section-feedback" data-section="feedback" hidden>
           <button type="button" class="fv-a11y-section-back" data-target="main" aria-label="<?php esc_attr_e('חזרה לתפריט הראשי', 'fv-accessibility'); ?>">
             <?php esc_html_e('← חזרה', 'fv-accessibility'); ?>
@@ -340,6 +394,14 @@ class Plugin {
         <a href="<?php echo esc_url($stmt_url); ?>" class="fv-a11y-statement-link"><?php echo $stmt_label; ?></a>
       </footer>
     </div>
+
+    <?php /* Skip-link, reading ruler & mask are always in the DOM but only
+              display when their feature class is on <html>. Keeps the JS
+              hot path simple — no DOM creation on toggle. */ ?>
+    <a class="fv-a11y-skip-link" href="#fv-a11y-skip-target"><?php esc_html_e('דלג לתוכן', 'fv-accessibility'); ?></a>
+    <div class="fv-a11y-reading-ruler" aria-hidden="true"></div>
+    <div class="fv-a11y-reading-mask fv-a11y-reading-mask-top"    aria-hidden="true"></div>
+    <div class="fv-a11y-reading-mask fv-a11y-reading-mask-bottom" aria-hidden="true"></div>
     <?php
   }
 
