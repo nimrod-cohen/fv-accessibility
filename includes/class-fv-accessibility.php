@@ -21,7 +21,6 @@ class Plugin {
     add_action('wp_enqueue_scripts', [$this, 'enqueue_frontend']);
     add_action('wp_head', [$this, 'inline_styles'], 99);
     add_action('wp_footer', [$this, 'render_button']);
-    add_action('wp_footer', [$this, 'render_footer_icon']);
 
     Statement::init();
     Feedback::init();
@@ -193,29 +192,4 @@ class Plugin {
     <?php
   }
 
-  /**
-   * Small accessibility-statement link auto-injected at the end of <body> when
-   * `show_footer_icon` is on. Sits inline (not fixed) so themes lay it out
-   * naturally below the page content. Theme integrators can also place it
-   * anywhere by enqueuing the icon directly via the JS-free shortcode in the
-   * theme's footer.php.
-   */
-  public function render_footer_icon() {
-    if (!$this->should_render()) return;
-    $settings = Settings::get();
-    if (empty($settings['advanced']['show_footer_icon'])) return;
-    $url = Statement::url();
-    ?>
-    <div class="fv-a11y-footer-link" role="complementary" aria-label="<?php esc_attr_e('הצהרת נגישות', 'fv-accessibility'); ?>">
-      <a href="<?php echo esc_url($url); ?>">
-        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false" width="16" height="16">
-          <circle cx="12" cy="4" r="1.6"/>
-          <path d="M5.5 7.5h13a1.5 1.5 0 0 1 0 3h-13a1.5 1.5 0 0 1 0-3z"/>
-          <path d="M12 10.5l-3.6 9.8a1 1 0 0 0 1.88.7L12 16l1.72 5a1 1 0 0 0 1.88-.7z"/>
-        </svg>
-        <span><?php esc_html_e('הצהרת נגישות', 'fv-accessibility'); ?></span>
-      </a>
-    </div>
-    <?php
-  }
 }

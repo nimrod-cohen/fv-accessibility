@@ -68,7 +68,6 @@ class Admin {
     $bp = (int) ($_POST['advanced']['mobile_breakpoint'] ?? 768);
     $settings['advanced']['mobile_breakpoint'] = max(320, min(1440, $bp));
 
-    $settings['advanced']['show_footer_icon']     = !empty($_POST['advanced']['show_footer_icon']);
     $settings['advanced']['cleanup_on_uninstall'] = !empty($_POST['advanced']['cleanup_on_uninstall']);
 
     if (isset($_POST['advanced']['exclude_pages']) && is_array($_POST['advanced']['exclude_pages'])) {
@@ -370,14 +369,6 @@ class Admin {
   private static function render_advanced_tab($settings) {
     $adv = $settings['advanced'];
     ?>
-    <div class="fv-a11y-card">
-      <h2><?php esc_html_e('אייקון בפוטר', 'fv-accessibility'); ?></h2>
-      <label class="fv-a11y-toggle">
-        <input type="checkbox" name="advanced[show_footer_icon]" value="1" <?php checked(!empty($adv['show_footer_icon'])); ?>>
-        <span><?php esc_html_e('הצג קישור קטן להצהרת הנגישות בתחתית כל עמוד', 'fv-accessibility'); ?></span>
-      </label>
-    </div>
-
     <div class="fv-a11y-card">
       <h2><?php esc_html_e('עמודים מוחרגים', 'fv-accessibility'); ?></h2>
       <p class="description"><?php esc_html_e('בעמודים המסומנים, כפתור הנגישות לא יופיע (שימושי לדפי תשלום, לדוגמה).', 'fv-accessibility'); ?></p>
