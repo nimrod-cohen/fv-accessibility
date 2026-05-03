@@ -2,6 +2,27 @@
 
 All notable changes will be documented in this file.
 
+## [0.4.0] - 2026-05-03 — Module 4: color/contrast (21–26) + media/motion (27–30)
+
+### Added
+- **Color/contrast features (6)**:
+  - `contrast_light` — white background, black text, blue links (`#0000ee`), visited purple, no shadows.
+  - `contrast_dark` — black background, white text, yellow links + headings.
+  - `monochrome` — `filter: grayscale(100%)` on body.
+  - `invert_colors` — body inverted; images / videos / iframes re-inverted to look natural.
+  - `saturation` — cycle: high (`saturate(2)`) → low (`saturate(0.4)`) → off.
+  - **`color_picker`** — three inline color inputs (background / text / headings). Uses CSS custom properties (`--fv-custom-bg`, `--fv-custom-fg`, `--fv-custom-heading`) so unset channels don't trample the page's own colors. Live-updates on `input` event for drag-preview. "Clear colors" button resets just the customs.
+- **Media/motion features (4)**:
+  - `pause_animations` — kills all CSS animations + transitions globally; JS pauses currently-playing `<video>` elements.
+  - `hide_images` — hides `<img>`, `<picture>`, `<svg>` (excluding our icon), `<video>` via `visibility: hidden`.
+  - `block_flashing` — kills repeating animations + clamps duration to 1s, neutralizes legacy `<marquee>`/`<blink>` per WCAG 2.3.1.
+  - `mute_media` — JS mutes all `<audio>`/`<video>`; `MutationObserver` mutes dynamically-added media too. Disconnects observer on toggle-off.
+
+### Changed
+- Inline `<head>` bootstrap script extended to apply the new state keys before paint, including custom-color CSS variables (`--fv-custom-*`).
+- `applyState` regex updated to strip the new `fv-*` class families on state changes.
+- New picker control type with its own grid-spanning layout in the drawer.
+
 ## [0.3.0] - 2026-05-03 — Module 3: content adjustments (features 6–20)
 
 ### Added

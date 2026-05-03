@@ -137,5 +137,115 @@ html.fv-content-magnifier body :is(p, li, h1, h2, h3, h4, h5, h6, td, blockquote
   html.fv-content-magnifier body *:hover { transition: none }
 }
 
-/* When user prefers reduced motion AND has page-zoom on, skip the zoom
-   transition. (zoom itself is instant; this is just defense.) */
+/* ─────────────────────────── Color & contrast ─────────────────────────── */
+
+/* --- Feature 21: Light high-contrast (white bg / black text) --- */
+html.fv-contrast-light body :not(.fv-a11y-button):not(.fv-a11y-button *):not(.fv-a11y-panel):not(.fv-a11y-panel *) {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border-color: #000000 !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
+html.fv-contrast-light body a:not(.fv-a11y-button):not(.fv-a11y-panel a) {
+  color: #0000ee !important;
+  text-decoration: underline !important;
+}
+html.fv-contrast-light body a:visited:not(.fv-a11y-button):not(.fv-a11y-panel a) {
+  color: #551a8b !important;
+}
+
+/* --- Feature 22: Dark high-contrast (black bg / white text) --- */
+html.fv-contrast-dark body :not(.fv-a11y-button):not(.fv-a11y-button *):not(.fv-a11y-panel):not(.fv-a11y-panel *) {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  border-color: #ffffff !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
+html.fv-contrast-dark body a:not(.fv-a11y-button):not(.fv-a11y-panel a) {
+  color: #ffff00 !important;
+  text-decoration: underline !important;
+}
+html.fv-contrast-dark body :is(h1, h2, h3, h4, h5, h6) {
+  color: #ffff00 !important;
+}
+
+/* --- Feature 23: Monochrome (grayscale) --- */
+html.fv-monochrome body {
+  filter: grayscale(100%);
+}
+
+/* --- Feature 24: Invert colors. Re-invert images / videos / iframes so
+       photographs don't look uncanny. Plugin UI is excluded by being
+       outside the body-filter scope; we filter <body>, not <html>. --- */
+html.fv-invert-colors body {
+  filter: invert(100%) hue-rotate(180deg);
+}
+html.fv-invert-colors body img:not(.fv-a11y-icon),
+html.fv-invert-colors body video,
+html.fv-invert-colors body iframe,
+html.fv-invert-colors body picture {
+  filter: invert(100%) hue-rotate(180deg);
+}
+
+/* --- Feature 25: Saturation cycle (high / low / off) --- */
+html.fv-saturation-high body { filter: saturate(2); }
+html.fv-saturation-low  body { filter: saturate(0.4); }
+
+/* --- Feature 26: Custom colors. CSS variables set inline by JS on
+       documentElement; the rule only kicks in when at least one of them
+       is non-empty (`fv-custom-colors` class). --- */
+html.fv-custom-colors body :not(.fv-a11y-button):not(.fv-a11y-button *):not(.fv-a11y-panel):not(.fv-a11y-panel *) {
+  background-color: var(--fv-custom-bg, transparent) !important;
+  color: var(--fv-custom-fg, inherit) !important;
+}
+html.fv-custom-colors body :is(h1, h2, h3, h4, h5, h6) {
+  color: var(--fv-custom-heading, inherit) !important;
+}
+/* When only one of the three is set, only that channel overrides — leaving
+   the other two as `inherit` / `transparent` so the page's existing values
+   aren't trampled. JS sets the CSS variable to empty when not configured. */
+
+/* ─────────────────────────── Media & motion ──────────────────────────── */
+
+/* --- Feature 27: Pause animations (CSS) --- */
+html.fv-pause-animations *,
+html.fv-pause-animations *::before,
+html.fv-pause-animations *::after {
+  animation-duration: 0.001s !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001s !important;
+  transition-delay: 0s !important;
+  scroll-behavior: auto !important;
+}
+
+/* --- Feature 28: Hide images (display:none keeps layout intact-ish) --- */
+html.fv-hide-images body img:not(.fv-a11y-icon),
+html.fv-hide-images body picture,
+html.fv-hide-images body svg:not(.fv-a11y-icon),
+html.fv-hide-images body video {
+  visibility: hidden !important;
+}
+
+/* --- Feature 29: Block flashing (>3Hz). Animations are already disabled
+       under fv-pause-animations; here we explicitly kill obvious offenders
+       (marquee/blink legacy elements) and CSS-keyframed flash classes. --- */
+html.fv-block-flashing body marquee,
+html.fv-block-flashing body blink {
+  animation: none !important;
+  display: inline !important;
+}
+html.fv-block-flashing body * {
+  animation-iteration-count: 1 !important;
+  animation-duration: 1s !important;
+  /* Keep transitions: only repeating animations cause WCAG 2.3.1 issues. */
+}
+
+/* --- Feature 30: Mute media (visual marker; the actual muting is JS) --- */
+html.fv-mute-media body video,
+html.fv-mute-media body audio {
+  outline: 1px dashed #94a3b8;
+  outline-offset: 2px;
+}
+

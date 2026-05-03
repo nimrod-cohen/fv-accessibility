@@ -44,7 +44,36 @@
     if (state.highlightFocus)    c.push('fv-highlight-focus');
     if (state.imageDescriptions) c.push('fv-image-descriptions');
     if (state.contentMagnifier)  c.push('fv-content-magnifier');
+    if (state.contrastLight)     c.push('fv-contrast-light');
+    if (state.contrastDark)      c.push('fv-contrast-dark');
+    if (state.monochrome)        c.push('fv-monochrome');
+    if (state.invertColors)      c.push('fv-invert-colors');
+    if (state.saturation)        c.push('fv-saturation-' + state.saturation);
+    if (state.pauseAnimations)   c.push('fv-pause-animations');
+    if (state.hideImages)        c.push('fv-hide-images');
+    if (state.blockFlashing)     c.push('fv-block-flashing');
+    if (state.muteMedia)         c.push('fv-mute-media');
+    if (state.customBg || state.customFg || state.customHeading) c.push('fv-custom-colors');
     return c;
+  }
+
+  /**
+   * Apply / remove custom-color CSS variables on documentElement. Empty
+   * values are removed so unset channels fall back to "inherit / transparent"
+   * in the rule (which lets the page's own colors show through).
+   */
+  function applyCustomColors(state) {
+    var h = document.documentElement;
+    var pairs = [
+      ['--fv-custom-bg',      state.customBg],
+      ['--fv-custom-fg',      state.customFg],
+      ['--fv-custom-heading', state.customHeading],
+    ];
+    for (var i = 0; i < pairs.length; i++) {
+      var k = pairs[i][0], v = pairs[i][1];
+      if (v) h.style.setProperty(k, v);
+      else   h.style.removeProperty(k);
+    }
   }
 
   function readState() {
@@ -73,17 +102,64 @@
     var keep = [];
     var existing = (html.className || '').split(/\s+/);
     for (var i = 0; i < existing.length; i++) {
-      if (existing[i] && !/^fv-(?:text-|line-|word-|letter-|page-|readable-|dyslexic-|larger-|highlight-|image-|content-)/.test(existing[i])) {
+      if (existing[i] && !/^fv-(?:text-|line-|word-|letter-|page-|readable-|dyslexic-|larger-|highlight-|image-|content-|contrast-|monochrome|invert-|saturation-|pause-|hide-|block-|mute-|custom-)/.test(existing[i])) {
         keep.push(existing[i]);
       }
     }
     html.className = keep.concat(classesFromState(state)).join(' ');
 
     // Image captions are a DOM-level feature, not just CSS; toggle them.
-    if (state.imageDescriptions) {
-      injectImageCaptions();
-    } else {
-      removeImageCaptions();
+    if (state.imageDescriptions) injectImageCaptions(); else removeImageCaptions();
+
+    // Custom color CSS variables.
+    applyCustomColors(state);
+
+    // Mute media affects audio/video properties, not just CSS.
+    if (state.muteMedia) muteAllMedia();   else unmuteAllMedia();
+
+    // Pause-animations also pauses currently-playing videos (for the
+    // "stop motion" expectation that goes beyond CSS animations).
+    if (state.pauseAnimations) pauseAllVideos();
+  }
+
+  /**
+   * Walk all <audio>/<video> elements and mute them. Sets up a
+   * MutationObserver (lazy, single instance) so later-added media also
+   * starts muted while the feature is on.
+   */
+  var muteObserver = null;
+  function muteAllMedia() {
+    var els = document.querySelectorAll('audio, video');
+    for (var i = 0; i < els.length; i++) els[i].muted = true;
+    if (!muteObserver && 'MutationObserver' in window) {
+      muteObserver = new MutationObserver(function (records) {
+        for (var i = 0; i < records.length; i++) {
+          var added = records[i].addedNodes;
+          for (var j = 0; j < added.length; j++) {
+            var n = added[j];
+            if (n.nodeType !== 1) continue;
+            if (n.matches && n.matches('audio, video')) n.muted = true;
+            if (n.querySelectorAll) {
+              var nested = n.querySelectorAll('audio, video');
+              for (var k = 0; k < nested.length; k++) nested[k].muted = true;
+            }
+          }
+        }
+      });
+      muteObserver.observe(document.body || document.documentElement, { childList: true, subtree: true });
+    }
+  }
+
+  function unmuteAllMedia() {
+    if (muteObserver) { muteObserver.disconnect(); muteObserver = null; }
+    // We deliberately don't auto-unmute existing elements — the user may
+    // have manually muted some. Toggling the menu doesn't re-broadcast.
+  }
+
+  function pauseAllVideos() {
+    var vids = document.querySelectorAll('video');
+    for (var i = 0; i < vids.length; i++) {
+      try { vids[i].pause(); } catch (e) {}
     }
   }
 
@@ -135,6 +211,15 @@
   function refreshAllButtons(panel, state) {
     var buttons = panel.querySelectorAll('.fv-a11y-ctl');
     for (var i = 0; i < buttons.length; i++) updateButton(buttons[i], state);
+
+    // Sync the color picker inputs to saved state (only when set; otherwise
+    // leave the default value so the input shows a sensible starting color).
+    var colorMap = { bg: 'customBg', fg: 'customFg', heading: 'customHeading' };
+    var inputs = panel.querySelectorAll('input[type="color"][data-color-target]');
+    for (var j = 0; j < inputs.length; j++) {
+      var key = colorMap[inputs[j].getAttribute('data-color-target')];
+      if (key && state[key]) inputs[j].value = state[key];
+    }
   }
 
   function injectImageCaptions() {
@@ -211,6 +296,27 @@
         handleReset();
         return;
       }
+      var resetColors = e.target.closest('[data-action="reset-colors"]');
+      if (resetColors && panel.contains(resetColors)) {
+        var st = readState();
+        st.customBg = ''; st.customFg = ''; st.customHeading = '';
+        writeState(st);
+        applyState(st);
+        return;
+      }
+    });
+
+    // Custom-colors picker (input event for live preview as user drags).
+    panel.addEventListener('input', function (e) {
+      var input = e.target.closest('input[type="color"][data-color-target]');
+      if (!input || !panel.contains(input)) return;
+      var which = input.getAttribute('data-color-target');
+      var st = readState();
+      if (which === 'bg')      st.customBg = input.value;
+      if (which === 'fg')      st.customFg = input.value;
+      if (which === 'heading') st.customHeading = input.value;
+      writeState(st);
+      applyState(st);
     });
 
     function handleControlClick(btn) {

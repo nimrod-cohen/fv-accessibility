@@ -4,7 +4,7 @@ Tags: accessibility, a11y, israel, wcag, hebrew, rtl, is-5568
 Requires at least: 6.0
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 0.3.0
+Stable tag: 0.4.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -31,6 +31,11 @@ Israeli rulings (Tel Aviv District Court, 2022 onward) make clear that overlay-o
 This 0.1.0 release ships the scaffold (button + drawer + position controls + Settings API). Subsequent modules add the 40 features listed in the spec.
 
 == Changelog ==
+
+= 0.4.0 =
+* 6 color/contrast features: light high-contrast, dark high-contrast, monochrome, invert colors, saturation cycle (high/low/off), and a 3-input custom-color picker (background / text / headings).
+* 4 media/motion features: pause animations (CSS + video), hide images, block flashing (>3Hz, WCAG 2.3.1), mute media (audio + video, including dynamically-added via MutationObserver).
+* Inline head bootstrap extended to apply the new state classes + custom-color CSS variables before paint.
 
 = 0.3.0 =
 * 15 content-adjustment features (text size, spacing × 3, line height, readable / dyslexic font, text alignment, page zoom, larger targets, highlights × 3, image descriptions, content magnifier).
