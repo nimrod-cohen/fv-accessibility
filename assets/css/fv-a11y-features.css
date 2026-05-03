@@ -171,15 +171,19 @@ html.fv-contrast-dark body :is(h1, h2, h3, h4, h5, h6) {
   color: #ffff00 !important;
 }
 
+/* Filters MUST go on body's direct children (excluding our own UI), not on
+   body itself. A `filter` on body turns body into the containing block for
+   all `position: fixed` descendants, which would yank our floating button
+   and drawer panel off the viewport and break page scrolling. */
+
 /* --- Feature 23: Monochrome (grayscale) --- */
-html.fv-monochrome body {
+html.fv-monochrome body > *:not(.fv-a11y-button):not(.fv-a11y-panel) {
   filter: grayscale(100%);
 }
 
 /* --- Feature 24: Invert colors. Re-invert images / videos / iframes so
-       photographs don't look uncanny. Plugin UI is excluded by being
-       outside the body-filter scope; we filter <body>, not <html>. --- */
-html.fv-invert-colors body {
+       photographs don't look uncanny. --- */
+html.fv-invert-colors body > *:not(.fv-a11y-button):not(.fv-a11y-panel) {
   filter: invert(100%) hue-rotate(180deg);
 }
 html.fv-invert-colors body img:not(.fv-a11y-icon),
@@ -190,8 +194,8 @@ html.fv-invert-colors body picture {
 }
 
 /* --- Feature 25: Saturation cycle (high / low / off) --- */
-html.fv-saturation-high body { filter: saturate(2); }
-html.fv-saturation-low  body { filter: saturate(0.4); }
+html.fv-saturation-high body > *:not(.fv-a11y-button):not(.fv-a11y-panel) { filter: saturate(2); }
+html.fv-saturation-low  body > *:not(.fv-a11y-button):not(.fv-a11y-panel) { filter: saturate(0.4); }
 
 /* --- Feature 26: Custom colors. CSS variables set inline by JS on
        documentElement; the rule only kicks in when at least one of them
