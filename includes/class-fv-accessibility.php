@@ -19,6 +19,7 @@ class Plugin {
 
   public function init() {
     add_action('wp_enqueue_scripts', [$this, 'enqueue_frontend']);
+    add_action('wp_head', [$this, 'inline_state_bootstrap'], 1);
     add_action('wp_head', [$this, 'inline_styles'], 99);
     add_action('wp_footer', [$this, 'render_button']);
 
@@ -74,9 +75,16 @@ class Plugin {
     if (!$this->should_render()) return;
 
     wp_enqueue_style(
+      'fv-accessibility-features',
+      FV_ACCESSIBILITY_URL . 'assets/css/fv-a11y-features.css',
+      [],
+      FV_ACCESSIBILITY_VERSION
+    );
+
+    wp_enqueue_style(
       'fv-accessibility',
       FV_ACCESSIBILITY_URL . 'assets/css/fv-a11y.css',
-      [],
+      ['fv-accessibility-features'],
       FV_ACCESSIBILITY_VERSION
     );
 
@@ -96,14 +104,37 @@ class Plugin {
         'action' => Feedback::ACTION,
       ],
       'i18n'     => [
-        'menuLabel'   => __('תפריט נגישות', 'fv-accessibility'),
-        'closeLabel'  => __('סגור תפריט נגישות', 'fv-accessibility'),
-        'comingSoon'  => __('פעולות הנגישות יוטמעו במודולים הבאים.', 'fv-accessibility'),
-        'sending'     => __('שולח...', 'fv-accessibility'),
-        'submit'      => __('שלח', 'fv-accessibility'),
-        'errorGeneric'=> __('שגיאה בשליחה. נסו שוב.', 'fv-accessibility'),
+        'menuLabel'    => __('תפריט נגישות', 'fv-accessibility'),
+        'closeLabel'   => __('סגור תפריט נגישות', 'fv-accessibility'),
+        'sending'      => __('שולח...', 'fv-accessibility'),
+        'submit'       => __('שלח', 'fv-accessibility'),
+        'errorGeneric' => __('שגיאה בשליחה. נסו שוב.', 'fv-accessibility'),
+        'announceOn'   => __('%s — פעיל', 'fv-accessibility'),
+        'announceOff'  => __('%s — כובה', 'fv-accessibility'),
+        'announceStep' => __('%1$s — שלב %2$d מתוך %3$d', 'fv-accessibility'),
+        'announceReset'=> __('כל ההתאמות אופסו.', 'fv-accessibility'),
+        'imgNoAlt'     => __('(תמונה ללא תיאור)', 'fv-accessibility'),
       ],
     ]);
+  }
+
+  /**
+   * Tiny inline script in <head> that reads the saved state from
+   * localStorage / cookie and adds the matching `fv-*` classes to <html>
+   * before the page paints. Without this, every refresh would briefly show
+   * the page in its default state and then snap into the user's preferred
+   * adjustments — visible jank that defeats the purpose of accessibility.
+   *
+   * Kept deliberately self-contained and non-strict: any failure must fall
+   * back to "no classes added" rather than throw.
+   */
+  public function inline_state_bootstrap() {
+    if (!$this->should_render()) return;
+    ?>
+<script id="fv-a11y-bootstrap">
+(function(){try{var s=null;try{s=localStorage.getItem('fv_a11y_state');}catch(e){}if(!s){var m=document.cookie.match(/(?:^|;\s*)fv_a11y_state=([^;]+)/);if(m)s=decodeURIComponent(m[1]);}if(!s)return;var st=JSON.parse(s),cls=[];if(st.textSize)cls.push('fv-text-size-'+st.textSize);if(st.lineSpacing)cls.push('fv-line-spacing-'+st.lineSpacing);if(st.wordSpacing)cls.push('fv-word-spacing-'+st.wordSpacing);if(st.letterSpacing)cls.push('fv-letter-spacing-'+st.letterSpacing);if(st.lineHeight)cls.push('fv-line-height-'+st.lineHeight);if(st.pageZoom)cls.push('fv-page-zoom-'+st.pageZoom);if(st.textAlign)cls.push('fv-text-align-'+st.textAlign);if(st.readableFont)cls.push('fv-readable-font');if(st.dyslexicFont)cls.push('fv-dyslexic-font');if(st.largerTargets)cls.push('fv-larger-targets');if(st.highlightHeadings)cls.push('fv-highlight-headings');if(st.highlightLinks)cls.push('fv-highlight-links');if(st.highlightFocus)cls.push('fv-highlight-focus');if(st.imageDescriptions)cls.push('fv-image-descriptions');if(st.contentMagnifier)cls.push('fv-content-magnifier');if(cls.length)document.documentElement.classList.add.apply(document.documentElement.classList,cls);}catch(e){}})();
+</script>
+    <?php
   }
 
   public function inline_styles() {
@@ -128,6 +159,84 @@ class Plugin {
       echo "\n/* fv-accessibility custom css */\n" . $custom;
     }
     echo "</style>\n";
+  }
+
+  /**
+   * Module-3 control definitions. As subsequent modules add behaviors for
+   * other categories (color, media, navigation, cognitive), entries get
+   * appended here.
+   *
+   * Each control has:
+   *   id     — matches the registry id and the JS state key (snake_case)
+   *   label  — Hebrew button label
+   *   type   — 'step' | 'toggle' | 'cycle'
+   *   steps  — number of step states (for type=step)
+   *   cycle  — comma-separated values rotated through (for type=cycle)
+   */
+  private function module3_controls() {
+    return [
+      ['id' => 'text_size',          'label' => 'גודל טקסט',                'type' => 'step',   'steps' => 4],
+      ['id' => 'line_spacing',       'label' => 'ריווח שורות',              'type' => 'step',   'steps' => 3],
+      ['id' => 'word_spacing',       'label' => 'ריווח מילים',              'type' => 'step',   'steps' => 3],
+      ['id' => 'letter_spacing',     'label' => 'ריווח אותיות',             'type' => 'step',   'steps' => 3],
+      ['id' => 'line_height',        'label' => 'גובה שורה',                'type' => 'step',   'steps' => 3],
+      ['id' => 'readable_font',      'label' => 'גופן קריא',                'type' => 'toggle'],
+      ['id' => 'dyslexic_font',      'label' => 'גופן לדיסלקסיה',           'type' => 'toggle'],
+      ['id' => 'text_align',         'label' => 'יישור טקסט',               'type' => 'cycle',  'cycle' => 'right,left,center,justify'],
+      ['id' => 'page_zoom',          'label' => 'הגדלת תצוגה',              'type' => 'step',   'steps' => 3],
+      ['id' => 'larger_targets',     'label' => 'הגדלת כפתורי פעולה',       'type' => 'toggle'],
+      ['id' => 'highlight_headings', 'label' => 'הדגשת כותרות',             'type' => 'toggle'],
+      ['id' => 'highlight_links',    'label' => 'הדגשת קישורים',            'type' => 'toggle'],
+      ['id' => 'highlight_focus',    'label' => 'הדגשת פוקוס',              'type' => 'toggle'],
+      ['id' => 'image_descriptions', 'label' => 'תיאור לתמונות',            'type' => 'toggle'],
+      ['id' => 'content_magnifier',  'label' => 'הגדלת תוכן בריחוף',        'type' => 'toggle'],
+    ];
+  }
+
+  /**
+   * Render the feature button grid in the drawer's main section. Only
+   * controls whose feature id is enabled in admin Settings → Features
+   * actually appear, so site owners can curate the menu per audience.
+   */
+  private function render_controls() {
+    $enabled = Features::enabled_map();
+    $cats    = Features::categories();
+    $controls = $this->module3_controls();
+
+    $by_cat = [];
+    foreach ($controls as $c) {
+      // Find the feature's category from the registry
+      $cat = 'content';
+      foreach (Features::all() as $f) {
+        if ($f['id'] === $c['id']) { $cat = $f['category']; break; }
+      }
+      $c['category'] = $cat;
+      if (empty($enabled[$c['id']])) continue;
+      $by_cat[$cat][] = $c;
+    }
+
+    foreach ($cats as $cat_id => $cat_label) {
+      if (empty($by_cat[$cat_id])) continue;
+      ?>
+      <div class="fv-a11y-controls-cat">
+        <h3><?php echo esc_html($cat_label); ?></h3>
+        <div class="fv-a11y-grid">
+          <?php foreach ($by_cat[$cat_id] as $c): ?>
+            <button type="button"
+                    class="fv-a11y-ctl"
+                    data-feature="<?php echo esc_attr($c['id']); ?>"
+                    data-type="<?php echo esc_attr($c['type']); ?>"
+                    <?php if ($c['type'] === 'step'): ?>data-steps="<?php echo (int) $c['steps']; ?>"<?php endif; ?>
+                    <?php if ($c['type'] === 'cycle'): ?>data-cycle="<?php echo esc_attr($c['cycle']); ?>"<?php endif; ?>
+                    aria-pressed="false">
+              <span class="fv-a11y-ctl-label"><?php echo esc_html($c['label']); ?></span>
+              <span class="fv-a11y-ctl-state" aria-hidden="true"></span>
+            </button>
+          <?php endforeach; ?>
+        </div>
+      </div>
+      <?php
+    }
   }
 
   public function render_button() {
@@ -172,7 +281,11 @@ class Plugin {
       </header>
       <div class="fv-a11y-panel-body">
         <section class="fv-a11y-section fv-a11y-section-main" data-section="main">
-          <p class="fv-a11y-placeholder"><?php echo $coming; ?></p>
+          <div class="fv-a11y-announce" role="status" aria-live="polite" aria-atomic="true"></div>
+          <?php $this->render_controls(); ?>
+          <button type="button" class="fv-a11y-reset" data-action="reset">
+            <?php esc_html_e('איפוס כל ההתאמות', 'fv-accessibility'); ?>
+          </button>
           <button type="button" class="fv-a11y-feedback-trigger" data-target="feedback">
             <?php esc_html_e('דווח על בעיית נגישות', 'fv-accessibility'); ?>
           </button>

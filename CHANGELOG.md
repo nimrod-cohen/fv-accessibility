@@ -2,6 +2,23 @@
 
 All notable changes will be documented in this file.
 
+## [0.3.0] - 2026-05-03 — Module 3: content adjustments (features 6–20)
+
+### Added
+- 15 content-adjustment features wired end-to-end:
+  - **Stepped (cycle through 1..N then off)**: text size (4 steps to +200%), line spacing (3), word spacing (3), letter spacing (3), line height / paragraph rhythm (3), page zoom (3 to 150%).
+  - **Toggles**: readable font (Heebo/Assistant/Open Sans Hebrew), dyslexic-friendly font (OpenDyslexic with Comic Sans MS / Verdana fallback — bundled `.woff2` to drop in `/assets/fonts/`), larger click targets (≥44×44px), highlight headings, highlight links, highlight focus, image descriptions (alt-text caption injected as a `<span>` after each img), content magnifier (CSS hover scale on text blocks).
+  - **Cycle**: text alignment (right → left → center → justify → off).
+- Each control is a button in the drawer panel with `aria-pressed` + state badge (step/checkmark/short label) and an `aria-live="polite"` announce region for state-change announcements ("גודל טקסט — שלב 2 מתוך 4").
+- **Reset action** (feature 40): clears all adjustments, wipes localStorage + cookie, refreshes button states, announces.
+- **Persistence**: `fv_a11y_state` JSON in `localStorage` with cookie fallback (1-year, `SameSite=Lax`). Choices survive navigation and visits.
+- **Inline `<head>` bootstrap** (≈1KB): reads cookie/localStorage and adds the `fv-*` classes to `<html>` *before paint* — prevents the brief flash of un-adjusted content on every navigation.
+- **Defensive isolation**: feature CSS uses `body :not(.fv-a11y-button):not(.fv-a11y-panel)*…` selectors; `fv-a11y.css` re-declares typography on our own UI with `!important`, so even with every feature active the menu/button stay readable.
+
+### Notes
+- Profiles (1–5), color/contrast (21–26), media/motion (27–30), navigation/cursor (31–37), and cognitive aids (38–39) still ship per the agreed cadence (modules 4–6).
+- OpenDyslexic font files are not yet bundled (binary blobs need to be added manually to `/assets/fonts/OpenDyslexic-Regular.woff2`); the CSS uses `local('OpenDyslexic')` first so users with the font installed system-wide already get it. A future release will bundle the font.
+
 ## [0.2.0] - 2026-05-03 — Module 2: admin completion + statement + feedback + footer
 
 ### Added

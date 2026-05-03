@@ -1,4 +1,28 @@
-/* FV Accessibility — frontend button + drawer. */
+/* FV Accessibility — frontend button + drawer.
+ *
+ * Note on cascade: feature classes on <html> (in fv-a11y-features.css)
+ * intentionally use `body :not(.fv-a11y-button)*...` selectors to skip
+ * our UI. Where unavoidable, the rules below re-declare typography
+ * properties with !important so the menu/button stay readable even if a
+ * user enables every text adjustment.
+ */
+.fv-a11y-button,
+.fv-a11y-button *,
+.fv-a11y-panel,
+.fv-a11y-panel * {
+  font-family: "Heebo", "Assistant", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif !important;
+  letter-spacing: normal !important;
+  word-spacing: normal !important;
+}
+.fv-a11y-panel,
+.fv-a11y-panel * {
+  font-size: 15px !important;
+  line-height: 1.45 !important;
+  text-align: start !important;
+}
+.fv-a11y-panel h2 { font-size: 18px !important }
+.fv-a11y-panel h3 { font-size: 16px !important }
+
 
 /* Trigger button. Position properties are emitted inline per-request based on
    the desktop/mobile config; this stylesheet only owns appearance + chrome. */
@@ -151,6 +175,119 @@
   margin: 0 0 12px;
   font-size: 16px;
   font-weight: 700;
+}
+
+/* aria-live region for state-change announcements. Visually hidden but
+   readable by screen readers (the standard "sr-only" pattern). */
+.fv-a11y-announce {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* Feature control grid (the drawer's "main" section content). */
+.fv-a11y-controls-cat {
+  margin-bottom: 18px;
+}
+
+.fv-a11y-controls-cat h3 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #4b5563;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.fv-a11y-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.fv-a11y-ctl {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 72px;
+  padding: 10px 8px;
+  background: #f3f4f6;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  font: inherit;
+  color: #111827;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+
+.fv-a11y-ctl:hover {
+  background: #e5e7eb;
+}
+
+.fv-a11y-ctl.is-active {
+  background: #dbeafe;
+  border-color: #1d4ed8;
+}
+
+.fv-a11y-ctl:focus-visible {
+  outline: 2px solid #1d4ed8;
+  outline-offset: 2px;
+}
+
+.fv-a11y-ctl-label {
+  font-size: 13px !important;
+  line-height: 1.2 !important;
+  font-weight: 500;
+}
+
+.fv-a11y-ctl-state {
+  position: absolute;
+  top: 6px;
+  inset-inline-end: 8px;
+  font-size: 11px !important;
+  font-weight: 700;
+  background: #1d4ed8;
+  color: #ffffff;
+  padding: 1px 6px;
+  border-radius: 10px;
+  line-height: 1.4 !important;
+  min-width: 18px;
+  text-align: center;
+}
+
+.fv-a11y-ctl-state:empty { display: none }
+
+.fv-a11y-reset {
+  display: block;
+  width: 100%;
+  margin: 14px 0 8px;
+  padding: 10px 14px;
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fbbf24;
+  border-radius: 6px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.fv-a11y-reset:hover {
+  background: #fde68a;
+}
+
+.fv-a11y-reset:focus-visible {
+  outline: 2px solid #b45309;
+  outline-offset: 2px;
 }
 
 .fv-a11y-feedback-trigger {

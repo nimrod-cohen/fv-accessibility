@@ -4,7 +4,7 @@ Tags: accessibility, a11y, israel, wcag, hebrew, rtl, is-5568
 Requires at least: 6.0
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 0.2.0
+Stable tag: 0.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -31,6 +31,14 @@ Israeli rulings (Tel Aviv District Court, 2022 onward) make clear that overlay-o
 This 0.1.0 release ships the scaffold (button + drawer + position controls + Settings API). Subsequent modules add the 40 features listed in the spec.
 
 == Changelog ==
+
+= 0.3.0 =
+* 15 content-adjustment features (text size, spacing × 3, line height, readable / dyslexic font, text alignment, page zoom, larger targets, highlights × 3, image descriptions, content magnifier).
+* Reset action.
+* Persistent state via localStorage + 1-year cookie fallback.
+* Inline <head> bootstrap eliminates flash-of-unadjusted-content on navigation.
+* aria-live announcements on state change; aria-pressed on toggles.
+* Defensive CSS isolation keeps the menu/button readable regardless of active adjustments.
 
 = 0.2.0 =
 * Features registry (39 adjustments + Reset) — toggle on/off per site from the admin Features tab; behavior lands in modules 3–6.
