@@ -132,7 +132,7 @@ class Plugin {
     if (!$this->should_render()) return;
     ?>
 <script id="fv-a11y-bootstrap">
-(function(){try{var s=null;try{s=localStorage.getItem('fv_a11y_state');}catch(e){}if(!s){var m=document.cookie.match(/(?:^|;\s*)fv_a11y_state=([^;]+)/);if(m)s=decodeURIComponent(m[1]);}if(!s)return;var st=JSON.parse(s),cls=[],h=document.documentElement;if(st.textSize)cls.push('fv-text-size-'+st.textSize);if(st.lineSpacing)cls.push('fv-line-spacing-'+st.lineSpacing);if(st.wordSpacing)cls.push('fv-word-spacing-'+st.wordSpacing);if(st.letterSpacing)cls.push('fv-letter-spacing-'+st.letterSpacing);if(st.lineHeight)cls.push('fv-line-height-'+st.lineHeight);if(st.pageZoom)cls.push('fv-page-zoom-'+st.pageZoom);if(st.textAlign)cls.push('fv-text-align-'+st.textAlign);if(st.readableFont)cls.push('fv-readable-font');if(st.dyslexicFont)cls.push('fv-dyslexic-font');if(st.largerTargets)cls.push('fv-larger-targets');if(st.highlightHeadings)cls.push('fv-highlight-headings');if(st.highlightLinks)cls.push('fv-highlight-links');if(st.highlightFocus)cls.push('fv-highlight-focus');if(st.imageDescriptions)cls.push('fv-image-descriptions');if(st.contentMagnifier)cls.push('fv-content-magnifier');if(st.contrastLight)cls.push('fv-contrast-light');if(st.contrastDark)cls.push('fv-contrast-dark');if(st.monochrome)cls.push('fv-monochrome');if(st.invertColors)cls.push('fv-invert-colors');if(st.saturation)cls.push('fv-saturation-'+st.saturation);if(st.pauseAnimations)cls.push('fv-pause-animations');if(st.hideImages)cls.push('fv-hide-images');if(st.blockFlashing)cls.push('fv-block-flashing');if(st.muteMedia)cls.push('fv-mute-media');if(st.cursorBlack)cls.push('fv-cursor-black');if(st.cursorWhite)cls.push('fv-cursor-white');if(st.keyboardNav)cls.push('fv-keyboard-nav');if(st.readingRuler)cls.push('fv-reading-ruler');if(st.readingMask)cls.push('fv-reading-mask');if(st.readerMode)cls.push('fv-reader-mode');var hasCustom=false;if(st.customBg){h.style.setProperty('--fv-custom-bg',st.customBg);hasCustom=true;}if(st.customFg){h.style.setProperty('--fv-custom-fg',st.customFg);hasCustom=true;}if(st.customHeading){h.style.setProperty('--fv-custom-heading',st.customHeading);hasCustom=true;}if(hasCustom)cls.push('fv-custom-colors');if(cls.length)h.classList.add.apply(h.classList,cls);}catch(e){}})();
+(function(){try{var s=null;try{s=localStorage.getItem('fv_a11y_state');}catch(e){}if(!s){var m=document.cookie.match(/(?:^|;\s*)fv_a11y_state=([^;]+)/);if(m)s=decodeURIComponent(m[1]);}if(!s)return;var st=JSON.parse(s),cls=[],h=document.documentElement;if(st.textSize)cls.push('fv-text-size-'+st.textSize);if(st.lineSpacing)cls.push('fv-line-spacing-'+st.lineSpacing);if(st.wordSpacing)cls.push('fv-word-spacing-'+st.wordSpacing);if(st.letterSpacing)cls.push('fv-letter-spacing-'+st.letterSpacing);if(st.lineHeight)cls.push('fv-line-height-'+st.lineHeight);if(st.pageZoom)cls.push('fv-page-zoom-'+st.pageZoom);if(st.textAlign)cls.push('fv-text-align-'+st.textAlign);if(st.readableFont)cls.push('fv-readable-font');if(st.dyslexicFont)cls.push('fv-dyslexic-font');if(st.largerTargets)cls.push('fv-larger-targets');if(st.highlightHeadings)cls.push('fv-highlight-headings');if(st.highlightLinks)cls.push('fv-highlight-links');if(st.highlightFocus)cls.push('fv-highlight-focus');if(st.imageDescriptions)cls.push('fv-image-descriptions');if(st.contentMagnifier)cls.push('fv-content-magnifier');if(st.contrast)cls.push('fv-contrast-'+st.contrast);if(st.monochrome)cls.push('fv-monochrome');if(st.invertColors)cls.push('fv-invert-colors');if(st.saturation)cls.push('fv-saturation-'+st.saturation);if(st.pauseAnimations)cls.push('fv-pause-animations');if(st.hideImages)cls.push('fv-hide-images');if(st.blockFlashing)cls.push('fv-block-flashing');if(st.muteMedia)cls.push('fv-mute-media');if(st.cursor)cls.push('fv-cursor-'+st.cursor);if(st.keyboardNav)cls.push('fv-keyboard-nav');if(st.readingRuler)cls.push('fv-reading-ruler');if(st.readingMask)cls.push('fv-reading-mask');if(st.readerMode)cls.push('fv-reader-mode');var hasCustom=false;if(st.customBg){h.style.setProperty('--fv-custom-bg',st.customBg);hasCustom=true;}if(st.customFg){h.style.setProperty('--fv-custom-fg',st.customFg);hasCustom=true;}if(st.customHeading){h.style.setProperty('--fv-custom-heading',st.customHeading);hasCustom=true;}if(hasCustom)cls.push('fv-custom-colors');if(cls.length)h.classList.add.apply(h.classList,cls);}catch(e){}})();
 </script>
     <?php
   }
@@ -182,8 +182,7 @@ class Plugin {
       ['id' => 'profile_motor',       'label' => 'נגישות לנכי מוטוריקה',    'type' => 'profile'],
     ];
     $navigation = [
-      ['id' => 'cursor_black',        'label' => 'סמן גדול שחור',           'type' => 'toggle'],
-      ['id' => 'cursor_white',        'label' => 'סמן גדול לבן',            'type' => 'toggle'],
+      ['id' => 'cursor',              'label' => 'סמן גדול',                'type' => 'cycle',  'cycle' => 'black,white'],
       ['id' => 'keyboard_nav',        'label' => 'ניווט מקלדת',             'type' => 'toggle'],
       ['id' => 'reading_ruler',       'label' => 'מדריך קריאה',             'type' => 'toggle'],
       ['id' => 'reading_mask',        'label' => 'מיקוד קריאה',             'type' => 'toggle'],
@@ -192,8 +191,7 @@ class Plugin {
       ['id' => 'page_outline',        'label' => 'סיכום עמוד',              'type' => 'action', 'target' => 'outline'],
     ];
     $color = [
-      ['id' => 'contrast_light',     'label' => 'ניגודיות בהירה',           'type' => 'toggle'],
-      ['id' => 'contrast_dark',      'label' => 'ניגודיות כהה',             'type' => 'toggle'],
+      ['id' => 'contrast',           'label' => 'ניגודיות',                 'type' => 'cycle',  'cycle' => 'light,dark'],
       ['id' => 'monochrome',         'label' => 'מונוכרום',                 'type' => 'toggle'],
       ['id' => 'invert_colors',      'label' => 'ניגודיות הפוכה',           'type' => 'toggle'],
       ['id' => 'saturation',         'label' => 'רוויה',                    'type' => 'cycle',  'cycle' => 'high,low'],
@@ -255,19 +253,27 @@ class Plugin {
         <div class="fv-a11y-grid">
           <?php foreach ($by_cat[$cat_id] as $c): ?>
             <?php if ($c['type'] === 'profile'): ?>
+              <?php $icon_svg = Icons::get(Icons::for_feature($c['id'])); ?>
               <button type="button"
                       class="fv-a11y-profile-chip"
                       data-feature="<?php echo esc_attr($c['id']); ?>"
                       data-type="profile"
                       aria-pressed="false">
+                <?php if ($icon_svg): ?>
+                  <span class="fv-a11y-ctl-icon"><?php echo $icon_svg; ?></span>
+                <?php endif; ?>
                 <span class="fv-a11y-ctl-label"><?php echo esc_html($c['label']); ?></span>
               </button>
             <?php elseif ($c['type'] === 'action'): ?>
+              <?php $icon_svg = Icons::get(Icons::for_feature($c['id'])); ?>
               <button type="button"
                       class="fv-a11y-ctl"
                       data-feature="<?php echo esc_attr($c['id']); ?>"
                       data-type="action"
                       data-target="<?php echo esc_attr($c['target']); ?>">
+                <?php if ($icon_svg): ?>
+                  <span class="fv-a11y-ctl-icon"><?php echo $icon_svg; ?></span>
+                <?php endif; ?>
                 <span class="fv-a11y-ctl-label"><?php echo esc_html($c['label']); ?></span>
               </button>
             <?php elseif ($c['type'] === 'colors'): ?>
@@ -292,6 +298,13 @@ class Plugin {
                 </button>
               </div>
             <?php else: ?>
+              <?php
+              $dot_count = 0;
+              if ($c['type'] === 'step')  $dot_count = (int) $c['steps'];
+              if ($c['type'] === 'cycle') $dot_count = count(explode(',', $c['cycle']));
+              $icon_name = Icons::for_feature($c['id']);
+              $icon_svg  = $icon_name ? Icons::get($icon_name) : '';
+              ?>
               <button type="button"
                       class="fv-a11y-ctl"
                       data-feature="<?php echo esc_attr($c['id']); ?>"
@@ -299,8 +312,18 @@ class Plugin {
                       <?php if ($c['type'] === 'step'): ?>data-steps="<?php echo (int) $c['steps']; ?>"<?php endif; ?>
                       <?php if ($c['type'] === 'cycle'): ?>data-cycle="<?php echo esc_attr($c['cycle']); ?>"<?php endif; ?>
                       aria-pressed="false">
+                <?php if ($icon_svg): ?>
+                  <span class="fv-a11y-ctl-icon"><?php echo $icon_svg; ?></span>
+                <?php endif; ?>
                 <span class="fv-a11y-ctl-label"><?php echo esc_html($c['label']); ?></span>
                 <span class="fv-a11y-ctl-state" aria-hidden="true"></span>
+                <?php if ($dot_count > 0): ?>
+                  <span class="fv-a11y-ctl-dots" aria-hidden="true">
+                    <?php for ($i = 0; $i < $dot_count; $i++): ?>
+                      <span class="fv-a11y-ctl-dot"></span>
+                    <?php endfor; ?>
+                  </span>
+                <?php endif; ?>
               </button>
             <?php endif; ?>
           <?php endforeach; ?>

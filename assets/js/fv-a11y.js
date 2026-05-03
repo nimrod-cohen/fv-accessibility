@@ -44,8 +44,7 @@
     if (state.highlightFocus)    c.push('fv-highlight-focus');
     if (state.imageDescriptions) c.push('fv-image-descriptions');
     if (state.contentMagnifier)  c.push('fv-content-magnifier');
-    if (state.contrastLight)     c.push('fv-contrast-light');
-    if (state.contrastDark)      c.push('fv-contrast-dark');
+    if (state.contrast)          c.push('fv-contrast-' + state.contrast);
     if (state.monochrome)        c.push('fv-monochrome');
     if (state.invertColors)      c.push('fv-invert-colors');
     if (state.saturation)        c.push('fv-saturation-' + state.saturation);
@@ -54,8 +53,7 @@
     if (state.blockFlashing)     c.push('fv-block-flashing');
     if (state.muteMedia)         c.push('fv-mute-media');
     if (state.customBg || state.customFg || state.customHeading) c.push('fv-custom-colors');
-    if (state.cursorBlack)   c.push('fv-cursor-black');
-    if (state.cursorWhite)   c.push('fv-cursor-white');
+    if (state.cursor)        c.push('fv-cursor-' + state.cursor);
     if (state.keyboardNav)   c.push('fv-keyboard-nav');
     if (state.readingRuler)  c.push('fv-reading-ruler');
     if (state.readingMask)   c.push('fv-reading-mask');
@@ -72,10 +70,10 @@
    */
   var PROFILES = {
     profile_blind:       { keyboardNav: true, highlightLinks: true, highlightHeadings: true, highlightFocus: true, readableFont: true },
-    profile_low_vision:  { textSize: 2, contrastLight: true, readableFont: true, cursorWhite: true, largerTargets: true, highlightLinks: true },
+    profile_low_vision:  { textSize: 2, contrast: 'light', readableFont: true, cursor: 'white', largerTargets: true, highlightLinks: true },
     profile_color_blind: { monochrome: true, highlightLinks: true },
     profile_cognitive:   { readableFont: true, readingRuler: true, pauseAnimations: true, lineSpacing: 2, dyslexicFont: true },
-    profile_motor:       { keyboardNav: true, largerTargets: true, highlightFocus: true, cursorBlack: true }
+    profile_motor:       { keyboardNav: true, largerTargets: true, highlightFocus: true, cursor: 'black' }
   };
 
   function profileMatches(profileId, state) {
@@ -433,12 +431,14 @@
     var type = btn.getAttribute('data-type');
     var stateEl = btn.querySelector('.fv-a11y-ctl-state');
     var val = state[key];
+    var dotIdx = 0; // 0 = off, otherwise 1-based "currently filled count"
 
     if (type === 'step') {
       var on = !!val;
       btn.classList.toggle('is-active', on);
       btn.setAttribute('aria-pressed', on ? 'true' : 'false');
       if (stateEl) stateEl.textContent = on ? (val + '/' + btn.getAttribute('data-steps')) : '';
+      dotIdx = on ? parseInt(val, 10) : 0;
     } else if (type === 'toggle') {
       var t = !!val;
       btn.classList.toggle('is-active', t);
@@ -449,12 +449,24 @@
       btn.classList.toggle('is-active', !!c);
       btn.setAttribute('aria-pressed', c ? 'true' : 'false');
       if (stateEl) stateEl.textContent = c ? labelForCycleValue(c) : '';
+      if (c) {
+        var cycle = (btn.getAttribute('data-cycle') || '').split(',');
+        var idx = cycle.indexOf(c);
+        dotIdx = idx >= 0 ? idx + 1 : 0;
+      }
     } else if (type === 'profile') {
       var match = profileMatches(feature, state);
       btn.classList.toggle('is-active', match);
       btn.setAttribute('aria-pressed', match ? 'true' : 'false');
     }
     // 'action' type has no on/off state — it just opens a sub-section.
+
+    // Update step dots (rendered by PHP for step + cycle types). Each dot
+    // is "on" if its 1-based index is ≤ dotIdx.
+    var dots = btn.querySelectorAll('.fv-a11y-ctl-dot');
+    for (var d = 0; d < dots.length; d++) {
+      dots[d].classList.toggle('is-on', d < dotIdx);
+    }
   }
 
   function labelForCycleValue(v) {
@@ -634,9 +646,6 @@
           : (i18n.announceOff  || '%s off').replace('%s', label);
       } else if (type === 'toggle') {
         st[key] = !st[key];
-        // Cursor mutex: enabling one cursor variant forces the other off.
-        if (key === 'cursorBlack' && st.cursorBlack) st.cursorWhite = false;
-        if (key === 'cursorWhite' && st.cursorWhite) st.cursorBlack = false;
         msg = st[key]
           ? (i18n.announceOn  || '%s on').replace('%s', label)
           : (i18n.announceOff || '%s off').replace('%s', label);
