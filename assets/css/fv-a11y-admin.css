@@ -1,0 +1,94 @@
+/* FV Accessibility — admin Settings page. */
+
+.fv-a11y-admin .fv-a11y-card {
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.fv-a11y-admin .fv-a11y-card h2 {
+  margin: 0 0 6px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.fv-a11y-admin .fv-a11y-card .description {
+  margin: 0 0 12px;
+  color: #646970;
+}
+
+.fv-a11y-admin .fv-a11y-pos-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+@media (max-width: 782px) {
+  .fv-a11y-admin .fv-a11y-pos-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fv-a11y-admin .fv-a11y-card-inner {
+  background: #f9fafb;
+  border: 1px solid #eef0f2;
+  border-radius: 6px;
+  padding: 14px;
+  margin-top: 12px;
+}
+
+.fv-a11y-admin .fv-a11y-card-inner h3 {
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.fv-a11y-admin .fv-a11y-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.fv-a11y-admin .fv-a11y-grid-2 > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fv-a11y-admin .fv-a11y-grid-2 label {
+  font-size: 12px;
+  color: #4b5563;
+}
+
+.fv-a11y-admin .fv-a11y-grid-2 input,
+.fv-a11y-admin .fv-a11y-grid-2 select {
+  padding: 6px 8px;
+  font-size: 14px;
+}
+
+.fv-a11y-admin .fv-a11y-grid-2 input[type="color"] {
+  height: 38px;
+  padding: 2px;
+  cursor: pointer;
+}
+
+.fv-a11y-admin .fv-a11y-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.fv-a11y-admin .fv-a11y-coming-soon {
+  background: #fef3c7;
+  border: 1px dashed #fcd34d;
+  padding: 30px;
+  text-align: center;
+  color: #92400e;
+  border-radius: 8px;
+  margin-top: 16px;
+}
