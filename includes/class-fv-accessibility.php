@@ -131,10 +131,15 @@ class Plugin {
             aria-label="<?php echo $label; ?>"
             aria-expanded="false"
             aria-controls="fv-a11y-panel">
-      <svg class="fv-a11y-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-        <!-- ISA wheelchair pictogram (simplified, GPL-safe) -->
-        <circle cx="12" cy="3.6" r="1.9"/>
-        <path d="M9.2 7.2v5.6a2.2 2.2 0 0 0 2.2 2.2h3.9l1.6 4.4a1 1 0 0 0 1.9-.7l-1.6-4.4a2 2 0 0 0-1.9-1.3h-3.7V9.2h4.4a1 1 0 1 0 0-2H9.2zM9.4 15.8a4.5 4.5 0 1 0 4 6.5l-1.7-1a2.6 2.6 0 1 1-1.6-3.7v-1.8z"/>
+      <svg class="fv-a11y-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"
+           style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+        <g transform="matrix(1.35395,0,0,1.34887,-4.24735,-0.39702)">
+          <circle cx="12" cy="4" r="1.6"/>
+        </g>
+        <path d="M5.5,7.5L12,8.81L18.5,7.5C18.925,7.469 19.794,7.57 19.794,8.393C19.794,9.215 18.36,9.411 17.766,9.627C17.766,9.627 13.047,10.395 13.047,11.085C13.047,11.613 12,10.991 12,10.991C12,10.991 11.058,11.66 11.137,11.112C11.264,10.24 5.592,9.64 5.592,9.64C4.839,9.418 4.096,9.29 4.096,8.468C4.096,7.645 5.061,7.49 5.5,7.5Z" style="fill-rule:nonzero;"/>
+        <g transform="matrix(1,0,0,1,0,-0.0239911)">
+          <path d="M10.932,10.429C11.127,11.801 9.842,16.102 8.4,20.3C8.358,20.412 8.337,20.531 8.337,20.65C8.337,21.2 8.79,21.653 9.34,21.653C9.758,21.653 10.134,21.392 10.28,21L12,15.029L13.72,21C13.866,21.392 14.242,21.653 14.66,21.653C15.21,21.653 15.663,21.2 15.663,20.65C15.663,20.531 15.642,20.412 15.6,20.3C14.157,16.596 12.718,10.494 13.187,10.487C14.497,10.467 11.199,9.234 10.932,10.429Z" style="fill-rule:nonzero;"/>
+        </g>
       </svg>
     </button>
     <div id="fv-a11y-panel"
