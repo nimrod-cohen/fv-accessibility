@@ -26,33 +26,49 @@
 
 /* Trigger button. Position properties are emitted inline per-request based on
    the desktop/mobile config; this stylesheet only owns appearance + chrome. */
+/* Defensive `!important` on the visual properties: many themes (Bootstrap,
+   AMP-derived, custom resets) override `button` background, border-radius
+   and outline on :focus and :active. Without these we'd see the button
+   "turn into a gray square" the moment it's clicked. */
 .fv-a11y-button {
   position: fixed;
   z-index: 999999;
-  border: 0;
-  border-radius: 50%;
-  background: #1d4ed8;
-  color: #ffffff;
-  cursor: pointer;
-  display: flex;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background: var(--fv-a11y-bg, #1d4ed8) !important;
+  color: var(--fv-a11y-fg, #ffffff) !important;
+  cursor: pointer !important;
+  display: flex !important;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
   /* Composes the positional transform (set inline as --fv-a11y-pos-transform
      by inline_styles()) with any visual transform we want to add. */
   transform: var(--fv-a11y-pos-transform);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
+  outline: 0 !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+}
+
+.fv-a11y-button:hover,
+.fv-a11y-button:focus,
+.fv-a11y-button:active {
+  background: var(--fv-a11y-bg, #1d4ed8) !important;
+  color: var(--fv-a11y-fg, #ffffff) !important;
+  border-radius: 50% !important;
+  border: 0 !important;
 }
 
 .fv-a11y-button:hover {
   transform: var(--fv-a11y-pos-transform) scale(1.05);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3) !important;
 }
 
 .fv-a11y-button:focus-visible {
-  outline: 3px solid #ffffff;
-  outline-offset: 2px;
-  box-shadow: 0 0 0 6px currentColor;
+  outline: 3px solid #ffffff !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 6px currentColor !important;
 }
 
 .fv-a11y-icon {

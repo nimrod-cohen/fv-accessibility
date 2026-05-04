@@ -153,7 +153,7 @@ class Plugin {
     $custom = isset($settings['advanced']['custom_css']) ? trim((string) $settings['advanced']['custom_css']) : '';
 
     echo "<style id='fv-a11y-pos'>";
-    echo ".fv-a11y-button{position:fixed;{$desktop_css}background:" . esc_attr($bg) . ";color:" . esc_attr($fg) . ";}";
+    echo ".fv-a11y-button{position:fixed;{$desktop_css}--fv-a11y-bg:" . esc_attr($bg) . ";--fv-a11y-fg:" . esc_attr($fg) . ";}";
     echo "@media (max-width:{$bp}px){.fv-a11y-button{{$mobile_css}}}";
     if ($custom !== '') {
       // Tags were already stripped on save (wp_strip_all_tags in Admin::handle_save).
