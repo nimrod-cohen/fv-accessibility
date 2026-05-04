@@ -2,6 +2,17 @@
 
 All notable changes will be documented in this file.
 
+## [1.0.1] - 2026-05-04 — Position picker UI + bug fixes
+
+### Added
+- **Visual position picker** for the floating button: device toggle (monitor / smartphone icons, Elementor-style) at the top, then a **3×3 anchor grid** representing the viewport — click a corner / edge / center cell to anchor the button there. Numeric offset X/Y/size inputs sit beside the picker. Keyboard-accessible (arrow keys, RTL-aware).
+- **`center` horizontal anchor** is now a valid value (was previously only right/left). When set, the button is positioned via `left: calc(50% + Xpx); transform: translateX(-50%)`. New monitor + smartphone icons added to the icon registry.
+
+### Fixed
+- **Hover-slide bug**: hovering the floating button when anchored to middle (or center) made it jump out of position because the `:hover { transform: scale(1.05) }` rule was overriding the positional `translateY(-50%)` / `translateX(-50%)`. Fixed by emitting the positional transform as a CSS variable (`--fv-a11y-pos-transform`) and composing both transforms in the hover rule (`transform: var(--fv-a11y-pos-transform) scale(1.05)`).
+- **Tab-aware save**: saving any single tab in Settings → נגישות was unconditionally rewriting `settings[features]`, `advanced[exclude_pages]`, and `advanced[cleanup_on_uninstall]` from `$_POST` — wiping those values whenever the user wasn't on the Features / Advanced tab. The save handler now reads a hidden `active_tab` field and only updates fields belonging to the submitted tab.
+- The reduced-motion hover override no longer wipes the positional transform either (uses the same CSS-variable composition).
+
 ## [1.0.0] - 2026-05-04 — v1.0: compliance scanner, READMEs, registry cleanup
 
 ### Added

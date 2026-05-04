@@ -84,28 +84,38 @@ class Settings {
    * frontend output stay in lockstep.
    */
   public static function position_css($cfg) {
-    $side   = in_array($cfg['side'] ?? '', ['right', 'left'], true) ? $cfg['side'] : 'right';
+    $side   = in_array($cfg['side']   ?? '', ['right', 'center', 'left'], true) ? $cfg['side']   : 'right';
     $anchor = in_array($cfg['anchor'] ?? '', ['top', 'middle', 'bottom'], true) ? $cfg['anchor'] : 'bottom';
-    $x      = max(0, (int) ($cfg['offset_x'] ?? 20));
+    $x      = (int) ($cfg['offset_x'] ?? 20);
     $y      = (int) ($cfg['offset_y'] ?? 20);
     $size   = max(24, min(120, (int) ($cfg['size'] ?? 56)));
 
     $css = "width:{$size}px;height:{$size}px;";
 
-    if ($side === 'right') {
-      $css .= "right:{$x}px;left:auto;";
+    $transform = '';
+    if ($side === 'center') {
+      $css .= "left:calc(50% + {$x}px);right:auto;";
+      $transform = 'translateX(-50%)';
+    } elseif ($side === 'right') {
+      $css .= "right:" . max(0, $x) . "px;left:auto;";
     } else {
-      $css .= "left:{$x}px;right:auto;";
+      $css .= "left:" . max(0, $x) . "px;right:auto;";
     }
 
     if ($anchor === 'top') {
-      $css .= "top:{$y}px;bottom:auto;transform:none;";
+      $css .= "top:" . max(0, $y) . "px;bottom:auto;";
     } elseif ($anchor === 'bottom') {
-      $css .= "bottom:{$y}px;top:auto;transform:none;";
+      $css .= "bottom:" . max(0, $y) . "px;top:auto;";
     } else { // middle
-      $css .= "top:calc(50% + {$y}px);bottom:auto;transform:translateY(-50%);";
+      $css .= "top:calc(50% + {$y}px);bottom:auto;";
+      $transform = trim($transform . ' translateY(-50%)');
     }
 
+    // Emit the positional transform as a CSS variable rather than a direct
+    // `transform` property. The base style and the :hover scale both
+    // compose this var so the hover effect doesn't wipe out the centering
+    // translate.
+    $css .= '--fv-a11y-pos-transform:' . $transform . ';';
     return $css;
   }
 }

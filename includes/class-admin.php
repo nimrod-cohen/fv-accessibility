@@ -46,52 +46,43 @@ class Admin {
     check_admin_referer(self::NONCE);
 
     $settings = Settings::get();
+    $tab = isset($_POST['active_tab']) ? sanitize_key($_POST['active_tab']) : '';
 
+    if ($tab === 'position') {
     foreach (['desktop', 'mobile'] as $vp) {
       $vpdata = isset($_POST['position'][$vp]) && is_array($_POST['position'][$vp]) ? $_POST['position'][$vp] : [];
-      $settings['position'][$vp]['side']     = in_array($vpdata['side'] ?? '', ['right', 'left'], true) ? $vpdata['side'] : 'right';
+      $settings['position'][$vp]['side']     = in_array($vpdata['side'] ?? '', ['right', 'center', 'left'], true) ? $vpdata['side'] : 'right';
       $settings['position'][$vp]['anchor']   = in_array($vpdata['anchor'] ?? '', ['top', 'middle', 'bottom'], true) ? $vpdata['anchor'] : 'bottom';
       $settings['position'][$vp]['offset_x'] = max(0, (int) ($vpdata['offset_x'] ?? 0));
       $settings['position'][$vp]['offset_y'] = (int) ($vpdata['offset_y'] ?? 0);
       $settings['position'][$vp]['size']     = max(24, min(120, (int) ($vpdata['size'] ?? 56)));
     }
-
-    $btn = sanitize_hex_color($_POST['appearance']['button_color'] ?? '');
-    if ($btn) $settings['appearance']['button_color'] = $btn;
-    $ic  = sanitize_hex_color($_POST['appearance']['icon_color'] ?? '');
-    if ($ic) $settings['appearance']['icon_color'] = $ic;
-
-    if (!empty($_POST['shortcut'])) {
-      $settings['shortcut'] = sanitize_text_field(wp_unslash($_POST['shortcut']));
+      // Position-tab-only fields:
+      $bp = (int) ($_POST['advanced']['mobile_breakpoint'] ?? 768);
+      $settings['advanced']['mobile_breakpoint'] = max(320, min(1440, $bp));
+      if (!empty($_POST['shortcut'])) {
+        $settings['shortcut'] = sanitize_text_field(wp_unslash($_POST['shortcut']));
+      }
+      $settings['enabled'] = !empty($_POST['enabled']);
     }
 
-    $bp = (int) ($_POST['advanced']['mobile_breakpoint'] ?? 768);
-    $settings['advanced']['mobile_breakpoint'] = max(320, min(1440, $bp));
-
-    $settings['advanced']['cleanup_on_uninstall'] = !empty($_POST['advanced']['cleanup_on_uninstall']);
-
-    if (isset($_POST['advanced']['exclude_pages']) && is_array($_POST['advanced']['exclude_pages'])) {
-      $settings['advanced']['exclude_pages'] = array_values(array_filter(
-        array_map('absint', $_POST['advanced']['exclude_pages'])
-      ));
-    } else {
-      $settings['advanced']['exclude_pages'] = [];
+    if ($tab === 'appearance') {
+      $btn = sanitize_hex_color($_POST['appearance']['button_color'] ?? '');
+      if ($btn) $settings['appearance']['button_color'] = $btn;
+      $ic  = sanitize_hex_color($_POST['appearance']['icon_color'] ?? '');
+      if ($ic) $settings['appearance']['icon_color'] = $ic;
     }
 
-    if (isset($_POST['advanced']['custom_css'])) {
-      $settings['advanced']['custom_css'] = wp_strip_all_tags(wp_unslash($_POST['advanced']['custom_css']));
+    if ($tab === 'features') {
+      $features_post = isset($_POST['features']) && is_array($_POST['features']) ? $_POST['features'] : [];
+      $features_out  = [];
+      foreach (Features::all() as $f) {
+        $features_out[$f['id']] = !empty($features_post[$f['id']]);
+      }
+      $settings['features'] = $features_out;
     }
 
-    // Features
-    $features_post = isset($_POST['features']) && is_array($_POST['features']) ? $_POST['features'] : [];
-    $features_out  = [];
-    foreach (Features::all() as $f) {
-      $features_out[$f['id']] = !empty($features_post[$f['id']]);
-    }
-    $settings['features'] = $features_out;
-
-    // Statement
-    if (isset($_POST['statement']) && is_array($_POST['statement'])) {
+    if ($tab === 'statement' && isset($_POST['statement']) && is_array($_POST['statement'])) {
       $stmt_post = $_POST['statement'];
       foreach (['coordinator_name', 'coordinator_role', 'coordinator_phone', 'business_name'] as $k) {
         if (isset($stmt_post[$k])) {
@@ -99,8 +90,7 @@ class Admin {
         }
       }
       if (isset($stmt_post['coordinator_email'])) {
-        $email = sanitize_email(wp_unslash($stmt_post['coordinator_email']));
-        $settings['statement']['coordinator_email'] = $email;
+        $settings['statement']['coordinator_email'] = sanitize_email(wp_unslash($stmt_post['coordinator_email']));
       }
       if (isset($stmt_post['exemption_text'])) {
         $settings['statement']['exemption_text'] = sanitize_textarea_field(wp_unslash($stmt_post['exemption_text']));
@@ -108,7 +98,19 @@ class Admin {
       $settings['statement']['last_updated'] = current_time('Y-m-d');
     }
 
-    $settings['enabled'] = !empty($_POST['enabled']);
+    if ($tab === 'advanced') {
+      $settings['advanced']['cleanup_on_uninstall'] = !empty($_POST['advanced']['cleanup_on_uninstall']);
+      if (isset($_POST['advanced']['exclude_pages']) && is_array($_POST['advanced']['exclude_pages'])) {
+        $settings['advanced']['exclude_pages'] = array_values(array_filter(
+          array_map('absint', $_POST['advanced']['exclude_pages'])
+        ));
+      } else {
+        $settings['advanced']['exclude_pages'] = [];
+      }
+      if (isset($_POST['advanced']['custom_css'])) {
+        $settings['advanced']['custom_css'] = wp_strip_all_tags(wp_unslash($_POST['advanced']['custom_css']));
+      }
+    }
 
     Settings::update($settings);
     add_settings_error('fv_accessibility', 'saved', __('ההגדרות נשמרו.', 'fv-accessibility'), 'success');
@@ -145,6 +147,7 @@ class Admin {
 
       <form method="post" action="">
         <?php wp_nonce_field(self::NONCE); ?>
+        <input type="hidden" name="active_tab" value="<?php echo esc_attr($tab); ?>">
 
         <div class="fv-a11y-tab-content">
           <?php
@@ -189,12 +192,21 @@ class Admin {
       <h2><?php esc_html_e('מיקום הכפתור', 'fv-accessibility'); ?></h2>
       <p class="description"><?php esc_html_e('ניתן להגדיר מיקום שונה במחשב ובמכשיר נייד.', 'fv-accessibility'); ?></p>
 
-      <div class="fv-a11y-pos-grid">
-        <?php
-        self::render_position_card('desktop', __('מחשב', 'fv-accessibility'), $settings['position']['desktop']);
-        self::render_position_card('mobile',  __('נייד',  'fv-accessibility'), $settings['position']['mobile']);
-        ?>
+      <div class="fv-a11y-device-toggle" role="tablist">
+        <button type="button" class="fv-a11y-device-btn is-active" data-device="desktop" role="tab" aria-selected="true">
+          <span class="fv-a11y-device-icon"><?php echo Icons::get('monitor'); ?></span>
+          <span><?php esc_html_e('מחשב', 'fv-accessibility'); ?></span>
+        </button>
+        <button type="button" class="fv-a11y-device-btn" data-device="mobile" role="tab" aria-selected="false">
+          <span class="fv-a11y-device-icon"><?php echo Icons::get('smartphone'); ?></span>
+          <span><?php esc_html_e('נייד', 'fv-accessibility'); ?></span>
+        </button>
       </div>
+
+      <?php
+      self::render_position_form('desktop', $settings['position']['desktop'], false);
+      self::render_position_form('mobile',  $settings['position']['mobile'],  true);
+      ?>
 
       <div class="fv-a11y-card-inner">
         <label><?php esc_html_e('רוחב מסך גבולי לנייד (px)', 'fv-accessibility'); ?></label>
@@ -214,44 +226,68 @@ class Admin {
     <?php
   }
 
-  private static function render_position_card($vp, $label, $cfg) {
+  /**
+   * Per-device form: visual 3×3 anchor picker on the left, numeric inputs
+   * on the right. Only one device's form is visible at a time (via the
+   * device-toggle JS); both forms POST regardless.
+   */
+  private static function render_position_form($vp, $cfg, $hidden) {
+    $sides = [
+      ['top',    'right'], ['top',    'center'], ['top',    'left'],
+      ['middle', 'right'], ['middle', 'center'], ['middle', 'left'],
+      ['bottom', 'right'], ['bottom', 'center'], ['bottom', 'left'],
+    ];
     ?>
-    <div class="fv-a11y-card-inner">
-      <h3><?php echo esc_html($label); ?></h3>
-      <div class="fv-a11y-grid-2">
-        <div>
-          <label><?php esc_html_e('צד', 'fv-accessibility'); ?></label>
-          <select name="position[<?php echo esc_attr($vp); ?>][side]">
-            <option value="right" <?php selected($cfg['side'], 'right'); ?>><?php esc_html_e('ימין', 'fv-accessibility'); ?></option>
-            <option value="left"  <?php selected($cfg['side'], 'left'); ?>><?php esc_html_e('שמאל', 'fv-accessibility'); ?></option>
-          </select>
+    <div class="fv-a11y-device-form" data-device="<?php echo esc_attr($vp); ?>" <?php if ($hidden) echo 'hidden'; ?>>
+      <div class="fv-a11y-position-layout">
+        <div class="fv-a11y-pos-picker-wrap">
+          <div class="fv-a11y-pos-picker" role="radiogroup" aria-label="<?php esc_attr_e('עיגון הכפתור', 'fv-accessibility'); ?>">
+            <?php foreach ($sides as [$anchor, $side]):
+              $is_active = $cfg['anchor'] === $anchor && $cfg['side'] === $side;
+            ?>
+              <button type="button"
+                      class="fv-a11y-pos-cell <?php echo $is_active ? 'is-active' : ''; ?>"
+                      data-anchor="<?php echo esc_attr($anchor); ?>"
+                      data-side="<?php echo esc_attr($side); ?>"
+                      role="radio"
+                      aria-checked="<?php echo $is_active ? 'true' : 'false'; ?>"
+                      aria-label="<?php echo esc_attr(self::pos_label($anchor, $side)); ?>"></button>
+            <?php endforeach; ?>
+          </div>
+          <p class="fv-a11y-pos-hint"><?php esc_html_e('לחצו על הקצה הרצוי כדי לעגן את הכפתור.', 'fv-accessibility'); ?></p>
         </div>
-        <div>
-          <label><?php esc_html_e('עיגון אנכי', 'fv-accessibility'); ?></label>
-          <select name="position[<?php echo esc_attr($vp); ?>][anchor]">
-            <option value="top"    <?php selected($cfg['anchor'], 'top'); ?>><?php esc_html_e('למעלה', 'fv-accessibility'); ?></option>
-            <option value="middle" <?php selected($cfg['anchor'], 'middle'); ?>><?php esc_html_e('אמצע', 'fv-accessibility'); ?></option>
-            <option value="bottom" <?php selected($cfg['anchor'], 'bottom'); ?>><?php esc_html_e('למטה', 'fv-accessibility'); ?></option>
-          </select>
-        </div>
-        <div>
-          <label><?php esc_html_e('היסט אופקי (px)', 'fv-accessibility'); ?></label>
-          <input type="number" name="position[<?php echo esc_attr($vp); ?>][offset_x]" min="0" max="500" step="1"
-                 value="<?php echo esc_attr($cfg['offset_x']); ?>">
-        </div>
-        <div>
-          <label><?php esc_html_e('היסט אנכי (px)', 'fv-accessibility'); ?></label>
-          <input type="number" name="position[<?php echo esc_attr($vp); ?>][offset_y]" min="-500" max="500" step="1"
-                 value="<?php echo esc_attr($cfg['offset_y']); ?>">
-        </div>
-        <div>
-          <label><?php esc_html_e('גודל הכפתור (px)', 'fv-accessibility'); ?></label>
-          <input type="number" name="position[<?php echo esc_attr($vp); ?>][size]" min="24" max="120" step="1"
-                 value="<?php echo esc_attr($cfg['size']); ?>">
+
+        <div class="fv-a11y-pos-inputs">
+          <input type="hidden" name="position[<?php echo esc_attr($vp); ?>][side]"   value="<?php echo esc_attr($cfg['side']); ?>"   data-pos-input="side">
+          <input type="hidden" name="position[<?php echo esc_attr($vp); ?>][anchor]" value="<?php echo esc_attr($cfg['anchor']); ?>" data-pos-input="anchor">
+
+          <div class="fv-a11y-grid-2">
+            <div>
+              <label><?php esc_html_e('היסט אופקי (px)', 'fv-accessibility'); ?></label>
+              <input type="number" name="position[<?php echo esc_attr($vp); ?>][offset_x]" min="0" max="500" step="1"
+                     value="<?php echo esc_attr($cfg['offset_x']); ?>">
+            </div>
+            <div>
+              <label><?php esc_html_e('היסט אנכי (px)', 'fv-accessibility'); ?></label>
+              <input type="number" name="position[<?php echo esc_attr($vp); ?>][offset_y]" min="0" max="500" step="1"
+                     value="<?php echo esc_attr($cfg['offset_y']); ?>">
+            </div>
+            <div>
+              <label><?php esc_html_e('גודל הכפתור (px)', 'fv-accessibility'); ?></label>
+              <input type="number" name="position[<?php echo esc_attr($vp); ?>][size]" min="24" max="120" step="1"
+                     value="<?php echo esc_attr($cfg['size']); ?>">
+            </div>
+          </div>
         </div>
       </div>
     </div>
     <?php
+  }
+
+  private static function pos_label($anchor, $side) {
+    $a = ['top' => 'למעלה', 'middle' => 'באמצע', 'bottom' => 'למטה'];
+    $s = ['right' => 'בצד ימין', 'center' => 'במרכז', 'left' => 'בצד שמאל'];
+    return ($a[$anchor] ?? '') . ' ' . ($s[$side] ?? '');
   }
 
   private static function render_appearance_tab($settings) {
