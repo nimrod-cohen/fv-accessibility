@@ -19,7 +19,6 @@ class Features {
       'color'      => __('צבע וניגודיות', 'fv-accessibility'),
       'media'      => __('מדיה ותנועה', 'fv-accessibility'),
       'navigation' => __('ניווט וסמן', 'fv-accessibility'),
-      'cognitive'  => __('עזרים קוגניטיביים', 'fv-accessibility'),
     ];
   }
 
@@ -50,8 +49,7 @@ class Features {
       ['id' => 'line_height',        'category' => 'content', 'label' => 'גובה שורה',                 'default' => true],
 
       // Color & contrast
-      ['id' => 'contrast_light',     'category' => 'color', 'label' => 'ניגודיות בהירה',              'default' => true],
-      ['id' => 'contrast_dark',      'category' => 'color', 'label' => 'ניגודיות כהה',                'default' => true],
+      ['id' => 'contrast',           'category' => 'color', 'label' => 'ניגודיות (בהירה / כהה)',       'default' => true],
       ['id' => 'monochrome',         'category' => 'color', 'label' => 'מונוכרום',                    'default' => true],
       ['id' => 'invert_colors',      'category' => 'color', 'label' => 'מוד ניגודיות הפוכה',          'default' => true],
       ['id' => 'saturation',         'category' => 'color', 'label' => 'רוויה גבוהה / נמוכה',         'default' => true],
@@ -64,8 +62,7 @@ class Features {
       ['id' => 'mute_media',         'category' => 'media', 'label' => 'השתק מדיה',                   'default' => true],
 
       // Navigation & cursor
-      ['id' => 'cursor_black',       'category' => 'navigation', 'label' => 'סמן גדול שחור',          'default' => true],
-      ['id' => 'cursor_white',       'category' => 'navigation', 'label' => 'סמן גדול לבן',           'default' => true],
+      ['id' => 'cursor',             'category' => 'navigation', 'label' => 'סמן גדול (שחור / לבן)',  'default' => true],
       ['id' => 'keyboard_nav',       'category' => 'navigation', 'label' => 'ניווט מקלדת',            'default' => true],
       ['id' => 'reading_ruler',      'category' => 'navigation', 'label' => 'מדריך קריאה',            'default' => true],
       ['id' => 'reading_mask',       'category' => 'navigation', 'label' => 'מיקוד קריאה',            'default' => true],
@@ -73,9 +70,6 @@ class Features {
       ['id' => 'page_structure',     'category' => 'navigation', 'label' => 'מבנה העמוד',             'default' => true],
       ['id' => 'page_outline',       'category' => 'navigation', 'label' => 'סיכום עמוד',             'default' => true],
 
-      // Cognitive aids — heavier; default off so admins opt in.
-      ['id' => 'dictionary',         'category' => 'cognitive', 'label' => 'מילון',                   'default' => false],
-      ['id' => 'virtual_keyboard',   'category' => 'cognitive', 'label' => 'מקלדת וירטואלית',         'default' => false],
     ];
   }
 

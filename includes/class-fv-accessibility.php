@@ -25,6 +25,7 @@ class Plugin {
 
     Statement::init();
     Feedback::init();
+    Compliance::init();
 
     if (is_admin()) {
       Admin::register();

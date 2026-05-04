@@ -154,10 +154,10 @@ class Admin {
             case 'features':   self::render_features_tab($settings); break;
             case 'statement':  self::render_statement_tab($settings); break;
             case 'advanced':   self::render_advanced_tab($settings); break;
-            case 'compliance':
+            case 'compliance':  self::render_compliance_tab($settings); break;
             default:
               echo '<div class="fv-a11y-coming-soon"><p>'
-                . esc_html__('סורק התקינות יוטמע במודול 7 (גרסה 0.7.0).', 'fv-accessibility')
+                . esc_html__('מודול זה יוטמע בגרסאות הבאות.', 'fv-accessibility')
                 . '</p></div>';
           }
           ?>
@@ -363,6 +363,86 @@ class Admin {
         </p>
       <?php endif; ?>
     </div>
+    <?php
+  }
+
+  private static function render_compliance_tab($settings) {
+    $nonce = wp_create_nonce(Compliance::NONCE);
+    ?>
+    <div class="fv-a11y-card">
+      <h2><?php esc_html_e('בדיקת תקינות', 'fv-accessibility'); ?></h2>
+      <p class="description">
+        <?php esc_html_e('הסורק עובר על דף הבית ועל מספר עמודים אחרונים, ובוחן בעיות נפוצות מתקן ת"י 5568 / WCAG 2.1: תמונות ללא alt, היררכיית כותרות, שדות טופס ללא label, מאפיין lang ב‑<html>, קישור "דלג לתוכן", וקישורים גנריים. בדיקת ניגודיות (1.4.3) דורשת חישוב סגנונות בצד הלקוח ולא נכללת בסריקה זו — מומלץ להפעיל את התוסף axe DevTools בדפדפן לבדיקה מקיפה.', 'fv-accessibility'); ?>
+      </p>
+      <p>
+        <button type="button" class="button button-primary" id="fv-a11y-scan-run">
+          <?php esc_html_e('הפעל סריקה', 'fv-accessibility'); ?>
+        </button>
+        <span class="spinner" style="float:none;margin:0 8px;"></span>
+      </p>
+      <div id="fv-a11y-scan-result" class="fv-a11y-scan-result" hidden></div>
+    </div>
+    <script>
+    (function () {
+      var btn = document.getElementById('fv-a11y-scan-run');
+      var out = document.getElementById('fv-a11y-scan-result');
+      if (!btn || !out) return;
+      btn.addEventListener('click', function () {
+        btn.disabled = true;
+        var spinner = btn.parentNode.querySelector('.spinner');
+        if (spinner) spinner.classList.add('is-active');
+        out.hidden = true;
+        var fd = new FormData();
+        fd.append('action', '<?php echo esc_js(Compliance::ACTION); ?>');
+        fd.append('nonce',  '<?php echo esc_js($nonce); ?>');
+        fetch(ajaxurl, { method: 'POST', body: fd, credentials: 'same-origin' })
+          .then(function (r) { return r.json(); })
+          .then(function (j) {
+            btn.disabled = false;
+            if (spinner) spinner.classList.remove('is-active');
+            if (!j.success) { out.innerHTML = '<p style="color:#b91c1c">' + (j.data && j.data.message || 'Error') + '</p>'; out.hidden = false; return; }
+            renderReport(j.data);
+            out.hidden = false;
+          })
+          .catch(function () {
+            btn.disabled = false;
+            if (spinner) spinner.classList.remove('is-active');
+            out.innerHTML = '<p style="color:#b91c1c">Network error</p>';
+            out.hidden = false;
+          });
+      });
+
+      function renderReport(data) {
+        var html = '<h3>תוצאות סריקה</h3>';
+        html += '<p class="description">' + esc(data.note) + '</p>';
+        var totalIssues = 0;
+        var pages = Object.keys(data.report);
+        for (var i = 0; i < pages.length; i++) {
+          var key = pages[i];
+          var rec = data.report[key];
+          var url = data.urls[i];
+          html += '<div class="fv-a11y-scan-page"><h4>' + esc(url) + '</h4>';
+          if (rec.error) {
+            html += '<p style="color:#b91c1c">שגיאה: ' + esc(rec.error) + '</p>';
+          } else if (!rec.issues || !rec.issues.length) {
+            html += '<p style="color:#065f46">לא נמצאו בעיות.</p>';
+          } else {
+            html += '<table class="widefat striped"><thead><tr><th>חומרה</th><th>WCAG</th><th>תיאור</th><th>דוגמה</th></tr></thead><tbody>';
+            for (var j = 0; j < rec.issues.length; j++) {
+              var iss = rec.issues[j]; totalIssues++;
+              var sev = iss.severity === 'error' ? '🔴 שגיאה' : iss.severity === 'warn' ? '🟡 אזהרה' : 'ℹ️ מידע';
+              html += '<tr><td>' + sev + '</td><td>' + esc(iss.wcag) + '</td><td>' + esc(iss.msg) + '</td><td><code>' + esc(iss.sample) + '</code></td></tr>';
+            }
+            html += '</tbody></table>';
+          }
+          html += '</div>';
+        }
+        html = '<p><strong>נמצאו ' + totalIssues + ' בעיות סך הכול.</strong></p>' + html;
+        out.innerHTML = html;
+      }
+      function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]; }); }
+    })();
+    </script>
     <?php
   }
 

@@ -2,6 +2,23 @@
 
 All notable changes will be documented in this file.
 
+## [1.0.0] - 2026-05-04 — v1.0: compliance scanner, READMEs, registry cleanup
+
+### Added
+- **Compliance scanner** (`includes/class-compliance.php`, Settings → Compliance tab): crawls home + 5 most recent posts/pages, runs HTML-level WCAG checks against the high-impact rules: 1.1.1 (image-alt), 1.3.1 (h1-missing, heading-order, form-label), 2.4.1 (skip-link), 2.4.4 (link-name), 3.1.1 (html-has-lang). AJAX endpoint `wp_ajax_fv_a11y_scan`. Report renders in-place with severity per rule. Acknowledges that 1.4.3 contrast can't be done server-side and recommends axe DevTools.
+- **`README.md`** (English) — feature matrix, install + configure, architecture notes, dev structure, license.
+- **`README.he.md`** (Hebrew) — same in Hebrew.
+- **`tests/README.md`** — manual smoke checklist, axe-core invocation example, NVDA Hebrew spot check, performance budget.
+
+### Changed
+- **Features registry cleanup**: removed `cursor_black`/`cursor_white`/`contrast_light`/`contrast_dark` (combined into single `cursor` and `contrast` cycle entries earlier; admin Features tab was still showing the old four). Removed `dictionary` (38) and `virtual_keyboard` (39) — neither is required by IS 5568 / Reg 35; their presence was lifted from generic vendor menus and they're not part of the plugin's value proposition. Cognitive category removed from `Features::categories()`.
+- **Plugin status**: 1.0.0 stable. All legally-required components covered, all 36 menu features wired end-to-end, scanner present, docs in both languages.
+
+### Known limitations
+- **OpenDyslexic font binary** still needs to be dropped manually into `assets/fonts/OpenDyslexic-Regular.woff2` (binary file, not text). The CSS uses `local('OpenDyslexic')` first so users with the system font installed get it.
+- **Frontend JS not lazy-loaded** — currently loads on every page (~14 KB un-minified). Total wire-cost ≈12-14 KB gzipped, well under the 60 KB target. Lazy-loading the interaction layer is post-1.0.
+- **Compliance scanner** is intentionally narrower than axe-core — covers static-HTML rules only, not computed-style. Recommended supplementary: axe DevTools browser extension.
+
 ## [0.5.0] - 2026-05-03 — Module 5: navigation, cursor, profiles (31–37 + 1–5)
 
 ### Added
