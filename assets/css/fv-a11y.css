@@ -214,10 +214,13 @@
   outline-offset: 2px;
 }
 
-/* Drawer sections (main + feedback). Only one visible at a time; the
-   currently-shown one fills the body. */
-.fv-a11y-section[hidden] {
-  display: none;
+/* Drawer sections (main + feedback + structure + outline). Only one
+   visible at a time; the currently-shown one fills the body. Some themes
+   override the default `[hidden] { display: none }` (Bootstrap-style
+   resets do), so this needs to be !important. */
+.fv-a11y-section[hidden],
+.fv-a11y-panel [hidden] {
+  display: none !important;
 }
 
 .fv-a11y-section-back {
