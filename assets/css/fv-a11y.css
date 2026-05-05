@@ -144,15 +144,31 @@
   outline: none;
 }
 
+/* Generic reset for the drawer's buttons — only universally-safe
+   properties. Dimensions (padding/min-/max-/width/height) stay free
+   so each specific button class (.fv-a11y-ctl, .fv-a11y-panel-close,
+   etc.) can declare its own. */
+.fv-a11y-panel button {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  font-family: inherit !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+  text-shadow: none !important;
+}
+
 .fv-a11y-panel-close {
-  background: transparent;
-  border: 0;
-  font-size: 28px;
-  line-height: 1;
-  cursor: pointer;
-  color: #4b5563;
-  padding: 0 6px;
-  border-radius: 4px;
+  background: transparent !important;
+  border: 0 !important;
+  font-size: 28px !important;
+  line-height: 1 !important;
+  cursor: pointer !important;
+  color: #4b5563 !important;
+  padding: 0 6px !important;
+  border-radius: 4px !important;
+  width: auto !important;
+  height: auto !important;
 }
 
 .fv-a11y-panel-close:focus-visible {
@@ -205,13 +221,18 @@
 }
 
 .fv-a11y-section-back {
-  background: transparent;
-  border: 0;
-  font: inherit;
-  color: #1d4ed8;
-  cursor: pointer;
-  padding: 4px 0;
-  margin-bottom: 8px;
+  background: transparent !important;
+  border: 0 !important;
+  font-family: inherit !important;
+  font-size: 14px !important;
+  line-height: 1.3 !important;
+  color: #1d4ed8 !important;
+  cursor: pointer !important;
+  padding: 4px 0 !important;
+  margin: 0 0 8px !important;
+  width: auto !important;
+  height: auto !important;
+  min-height: 0 !important;
 }
 
 .fv-a11y-section-back:focus-visible {
@@ -261,20 +282,23 @@
 
 .fv-a11y-ctl {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
   gap: 6px;
-  min-height: 92px;
-  padding: 12px 8px 16px;
-  background: #f3f4f6;
-  border: 2px solid transparent;
-  border-radius: 8px;
-  font: inherit;
-  color: #111827;
-  cursor: pointer;
-  text-align: center;
+  min-height: 92px !important;
+  padding: 12px 8px 16px !important;
+  background: #f3f4f6 !important;
+  border: 2px solid transparent !important;
+  border-radius: 8px !important;
+  font-size: 14px !important;
+  line-height: 1.2 !important;
+  color: #111827 !important;
+  cursor: pointer !important;
+  text-align: center !important;
+  width: auto !important;
+  height: auto !important;
   transition: background 0.12s ease, border-color 0.12s ease;
 }
 
@@ -402,22 +426,25 @@
    feature buttons so they read as "shortcuts that bundle multiple". */
 .fv-a11y-profile-chip {
   grid-column: 1 / -1;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
   gap: 10px;
-  width: 100%;
-  padding: 12px 14px;
-  background: #eef2ff;
-  border: 2px solid transparent;
-  border-radius: 8px;
-  font: inherit;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 12px 14px !important;
+  background: #eef2ff !important;
+  border: 2px solid transparent !important;
+  border-radius: 8px !important;
+  font-family: inherit !important;
   font-size: 14px !important;
-  font-weight: 500;
-  color: #1e3a8a;
-  cursor: pointer;
-  text-align: start;
-  margin-bottom: 6px;
+  font-weight: 500 !important;
+  line-height: 1.3 !important;
+  color: #1e3a8a !important;
+  cursor: pointer !important;
+  text-align: start !important;
+  margin-bottom: 6px !important;
   transition: background 0.12s ease, border-color 0.12s ease;
 }
 .fv-a11y-profile-chip:hover  { background: #dbeafe; }
@@ -489,17 +516,21 @@
 }
 
 .fv-a11y-reset {
-  display: block;
-  width: 100%;
-  margin: 14px 0 8px;
-  padding: 10px 14px;
-  background: #fef3c7;
-  color: #92400e;
-  border: 1px solid #fbbf24;
-  border-radius: 6px;
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
+  display: block !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  margin: 14px 0 8px !important;
+  padding: 10px 14px !important;
+  background: #fef3c7 !important;
+  color: #92400e !important;
+  border: 1px solid #fbbf24 !important;
+  border-radius: 6px !important;
+  font-family: inherit !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  line-height: 1.3 !important;
+  cursor: pointer !important;
 }
 
 .fv-a11y-reset:hover {
@@ -512,16 +543,20 @@
 }
 
 .fv-a11y-feedback-trigger {
-  display: block;
-  width: 100%;
-  margin: 12px auto 0;
-  padding: 10px 14px;
-  background: #1d4ed8;
-  color: #fff;
-  border: 0;
-  border-radius: 6px;
-  font: inherit;
-  cursor: pointer;
+  display: block !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  margin: 12px auto 0 !important;
+  padding: 10px 14px !important;
+  background: #1d4ed8 !important;
+  color: #ffffff !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  font-family: inherit !important;
+  font-size: 14px !important;
+  line-height: 1.3 !important;
+  cursor: pointer !important;
 }
 
 .fv-a11y-feedback-trigger:hover {
