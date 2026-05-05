@@ -39,8 +39,21 @@
   color: var(--fv-a11y-fg, #ffffff) !important;
   cursor: pointer !important;
   display: flex !important;
-  align-items: center;
-  justify-content: center;
+  align-items: center !important;
+  justify-content: center !important;
+  /* Defensive box-model: many themes add padding, min-width, min-height
+     and font-size to bare <button> — those would skew our circle into
+     an ellipse and crowd out the icon. Lock everything we care about. */
+  padding: 0 !important;
+  margin: 0 !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-width: none !important;
+  max-height: none !important;
+  box-sizing: border-box !important;
+  aspect-ratio: 1 / 1 !important;
+  font-size: 16px !important;
+  line-height: 1 !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
   /* Composes the positional transform (set inline as --fv-a11y-pos-transform
      by inline_styles()) with any visual transform we want to add. */
@@ -72,10 +85,15 @@
 }
 
 .fv-a11y-icon {
-  width: 60%;
-  height: 60%;
-  fill: currentColor;
+  display: block !important;
+  width: 60% !important;
+  height: 60% !important;
+  fill: currentColor !important;
+  opacity: 1 !important;
+  visibility: visible !important;
   pointer-events: none;
+  /* Themes occasionally apply `svg { display: none }` resets or filter:
+     transitions; force visible. */
 }
 
 /* Drawer panel. Slides in from the right edge regardless of document

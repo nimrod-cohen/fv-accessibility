@@ -90,7 +90,9 @@ class Settings {
     $y      = (int) ($cfg['offset_y'] ?? 20);
     $size   = max(24, min(120, (int) ($cfg['size'] ?? 56)));
 
-    $css = "width:{$size}px;height:{$size}px;";
+    // !important on width/height so themes that pad <button> aggressively
+    // (e.g., irelandisrael) can't stretch us into an ellipse.
+    $css = "width:{$size}px!important;height:{$size}px!important;";
 
     $transform = '';
     if ($side === 'center') {
